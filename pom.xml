@@ -17,7 +17,10 @@
     <maven.compiler.version>3.13.0</maven.compiler.version>
     <maven.surefire.version>3.2.5</maven.surefire.version>
     <puppycrawl.version>10.17.0</puppycrawl.version>
-    <junit.platform.version>5.3.2</junit.platform.version>
+    <testcontainers.version>1.19.8</testcontainers.version>
+    <mysql.version>8.4.0</mysql.version>
+    <lombock.version>1.18.32</lombock.version>
+    <liquibase.version>4.28.0</liquibase.version>
 
     <checkstyle-maven-plugin.version>3.3.1</checkstyle-maven-plugin.version>
     <checkstyle.config.remote>
@@ -55,6 +58,9 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven.surefire.version}</version>
+        <configuration>
+          <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -62,7 +68,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.0</version>
+    <version>3.2.6</version>
     <relativePath/>
   </parent>
 
@@ -76,9 +82,22 @@
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <version>${mysql.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.32</version>
+      <version>${lombock.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -87,15 +106,19 @@
       <version>${puppycrawl.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>${junit.platform.version}</version>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+      <version>${liquibase.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit.platform.version}</version>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
+      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

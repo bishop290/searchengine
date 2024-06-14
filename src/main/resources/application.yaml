@@ -1,4 +1,19 @@
-# example values
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://192.168.1.15:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+    username: searchengine
+    password: OGI2Y2MxYmE2YzMyNjIx
+  jpa:
+    hibernate.ddl-auto: none
+    show-sql: true
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog/changelog.sql
+    enabled: true
+    drop-first: true
 
 indexing-settings:
   sites:
