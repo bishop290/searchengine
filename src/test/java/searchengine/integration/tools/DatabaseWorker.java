@@ -22,4 +22,9 @@ public class DatabaseWorker {
         return jdbc.queryForObject(query, new HashMap<>(),
                 new BeanPropertyRowMapper<>(entity, false));
     }
+
+    public static Integer count(String tableName, NamedParameterJdbcTemplate jdbc) {
+        final String query = String.format("select count(*) from %s", tableName);
+        return jdbc.getJdbcTemplate().queryForObject(query, Integer.class);
+    }
 }

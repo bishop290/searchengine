@@ -7,10 +7,10 @@ import org.testcontainers.containers.MySQLContainer;
 
 @IntegrationTest
 public abstract class TestContainer {
-    private static final MySQLContainer<?> container = new MySQLContainer<>("mysql:latest");
+    private static final MySQLContainer<?> container = new MySQLContainer<>("mysql:latest")
+            .withReuse(true);
 
-    @BeforeAll
-    static void runContainer() {
+    static {
         container.start();
     }
 

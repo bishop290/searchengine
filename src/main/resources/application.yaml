@@ -10,6 +10,13 @@ spring:
     hibernate.ddl-auto: none
     show-sql: true
     open-in-view: false
+    properties.hibernate:
+      format_sql: true
+      use_sql_comments: true
+      #order_inserts: true
+      #jdbc:
+      #  batch_size: 400
+
   liquibase:
     change-log: classpath:db/changelog/changelog.sql
     enabled: true
@@ -17,9 +24,15 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.lenta.ru
-      name: Лента.ру
-    - url: https://www.skillbox.ru
-      name: Skillbox
-    - url: https://www.playback.ru
-      name: PlayBack.Ru
+    - url: https://ipfran.ru
+      name: Институт прикладной физики им. А.В. Гапонова-Грехова
+    - url: https://dombulgakova.ru
+      name: Дом Булгакова. Музей Театр
+    - url: https://nikoartgallery.com
+      name: Галерея Никогосяна
+    - url: https://www.svetlovka.ru/
+      name: Библиотека Светловка
+
+jsoup-settings:
+  agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36
+  referrer: https://www.google.com
