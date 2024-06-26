@@ -8,9 +8,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "jsoup-settings")
-public class JsoupSettings {
-    private String agent;
-    private String referrer;
-    private int delay;
+@ConfigurationProperties(prefix = "entity-settings")
+public class EntitySettings {
+    private int insertLimit;
 }

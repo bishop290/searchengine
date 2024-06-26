@@ -1,6 +1,8 @@
 package searchengine.services;
 
+import searchengine.dto.indexing.IndexingResponse;
+
 public interface IndexingService {
-    void start();
-    void stop();
+    IndexingResponse start();
+    IndexingResponse stop();
 }

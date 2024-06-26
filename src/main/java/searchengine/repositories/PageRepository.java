@@ -10,5 +10,4 @@ import java.util.Set;
 
 @Repository
 public interface PageRepository extends JpaRepository<PageEntity, Integer> {
-    List<PageEntity> findBySiteAndPathIn(SiteEntity site, Set<String> paths);
 }

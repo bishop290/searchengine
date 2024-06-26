@@ -34,12 +34,7 @@ class PageJsoupManagerTest {
         return Stream.of(
                 arguments("https://google.com", "/"),
                 arguments("https://google.com/", "/"),
-                arguments("https://google.com/minor/hello-kitty", "/minor/hello-kitty"),
-                arguments("https://google.com/minor/hello-kitty#cat-food", ""),
-                arguments("www.wallhaven.cc",  ""),
-                arguments("",  ""),
-                arguments(null,  ""),
-                arguments("https://google.comminor/hello-kitty",  "")
+                arguments("https://google.com/minor/hello-kitty", "/minor/hello-kitty")
         );
     }
 
@@ -48,8 +43,8 @@ class PageJsoupManagerTest {
     @MethodSource("urlProvider")
     void testCutUrl(String url, String expected) {
         domain = "https://google.com";
-        jsoup = new PageJsoupManager(url, connection, domain);
-        assertEquals(expected, jsoup.getPath());
+        jsoup = new PageJsoupManager(connection, 1);
+        assertEquals(expected, jsoup.getPath(url, domain));
     }
 
     @ParameterizedTest
@@ -57,8 +52,8 @@ class PageJsoupManagerTest {
     @MethodSource("urlProvider")
     void testCutUrlSecondDomain(String url, String expected) {
         domain = "https://google.com/";
-        jsoup = new PageJsoupManager(url, connection, domain);
-        assertEquals(expected, jsoup.getPath());
+        jsoup = new PageJsoupManager(connection, 1);
+        assertEquals(expected, jsoup.getPath(url, domain));
     }
 
     @Test
@@ -67,10 +62,10 @@ class PageJsoupManagerTest {
         int numberOfLinks = 10;
         domain = "https://sendel.ru";
         String testPage = "src/test/resources/testpage.html";
-        jsoup = new PageJsoupManager(domain, connection, domain);
+        jsoup = new PageJsoupManager(connection, 1);
         File input = new File(testPage);
         Document doc = Jsoup.parse(input, "UTF-8", domain);
         jsoup.setDocument(doc);
-        assertEquals(numberOfLinks, jsoup.getLinks().size());
+        assertEquals(numberOfLinks, jsoup.getLinks(domain).size());
     }
 }

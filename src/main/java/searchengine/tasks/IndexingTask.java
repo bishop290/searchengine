@@ -1,27 +1,19 @@
 package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import searchengine.config.JsoupSettings;
-import searchengine.managers.LinksCache;
-import searchengine.managers.PageEntitiesManager;
-import searchengine.managers.PageJsoupManager;
-import searchengine.model.Status;
+import searchengine.managers.PagesManager;
 
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @RequiredArgsConstructor
 public class IndexingTask implements Runnable {
-    private final PageEntitiesManager pageManager;
-    private final JsoupSettings jsoupSettings;
-    private ForkJoinPool pool;
+    private final PagesManager manager;
+
     private Thread thread;
+    private final ForkJoinPool pool = new ForkJoinPool();
 
     public void start() {
-        thread = new Thread(this, pageManager.getDomain());
+        thread = new Thread(this, manager.domain());
         thread.start();
     }
 
@@ -34,23 +26,22 @@ public class IndexingTask implements Runnable {
     }
 
     public void stop() {
-        pool.shutdownNow();
-        pageManager.siteUpdate(Status.FAILED, "Индексация остановлена пользователем");
-        pageManager.completed();
+        if (!manager.isStop()) {
+            manager.stop();
+            manager.statusStop();
+        }
+    }
+
+    public boolean isRunning() {
+        return !manager.isStop();
     }
 
     @Override
     public void run() {
-        Connection connection = Jsoup.newSession()
-                .userAgent(jsoupSettings.getAgent()).referrer(jsoupSettings.getReferrer());
-        PageJsoupManager jsoupManager = new PageJsoupManager(pageManager.getDomain(), connection, pageManager.getDomain());
-        LinksCache linksCache = new LinksCache(500, 3);
-
-        pool = new ForkJoinPool();
-        pool.invoke(new PageParsingTask(jsoupManager, pageManager, linksCache));
-
-        pageManager.saveEntities();
-        pageManager.siteUpdate(Status.INDEXED, "");
-        pageManager.completed();
+        pool.invoke(new ParsingTask(manager.domain(), manager));
+        pool.shutdown();
+        manager.save();
+        manager.statusIndexed();
+        manager.stop();
     }
 }

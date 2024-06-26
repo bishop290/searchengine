@@ -1,6 +1,7 @@
 package searchengine.managers;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
@@ -15,37 +16,31 @@ import java.util.List;
 import java.util.Set;
 
 @Getter
+@RequiredArgsConstructor
 public class PageJsoupManager {
-    private final String url;
     private final Connection connection;
-    private final String domain;
+    private final int delay;
 
     @Setter
     private Document document;
-    private int code;
-    private String body;
-    private boolean error;
+    private int code = -1;
+    private String body = "";
 
-    public PageJsoupManager(String url, Connection connection, String domain) {
-        this.url = url;
-        this.connection = connection;
-        this.domain = domain.replaceFirst("^*(/)$", "");
-        this.error = false;
-    }
-
-    public void connect() {
+    public void connect(String url) {
+        startDelay();
         try {
             Connection.Response response = connection.newRequest().url(url).execute();
             document = response.parse();
-            set(false, document, response.statusCode(), document.body().html());
+            set(document, response.statusCode(), document.body().html());
         } catch (HttpStatusException e) {
-            set(true, null, e.getStatusCode(), e.getMessage());
+            set( null, e.getStatusCode(), e.getMessage());
         } catch (IOException e) {
-            set(true, null, -1, e.getMessage());
+            set(null, -1, e.getMessage());
         }
     }
 
-    public List<String> getLinks() {
+    public List<String> getLinks(String domain) {
+        domain = domain.replaceFirst("^*(/)$", "");
         if (document == null) {
             return new ArrayList<>();
         }
@@ -53,46 +48,45 @@ public class PageJsoupManager {
         Elements links = document.select("a[href]");
         for (Element link : links) {
             String absLink = link.attr("abs:href");
-            if (isUrlValid(absLink) && isNotMainUrl(absLink) && isNotDomain(absLink)) {
+            if (isUrlValid(absLink, domain) && isNotDomain(absLink, domain)) {
                 urls.add(absLink);
             }
         }
         return urls.stream().toList();
     }
 
-    public String getPath() {
-        if (url == null) {
-            return "";
-        } else if (url.equals(domain) || url.equals(domain + "/")) {
+    public String getPath(String url, String domain) {
+        domain = domain.replaceFirst("^*(/)$", "");
+        if (url.equals(domain) || url.equals(domain + "/")) {
             return "/";
-        } else if (!isUrlValid(url)) {
-            return "";
         } else {
             return url.replaceFirst(domain, "");
         }
     }
 
-    public PageJsoupManager getChild(String url) {
-        return new PageJsoupManager(url, connection, domain);
-    }
-
-    private boolean isUrlValid(String url) {
+    private boolean isUrlValid(String url, String domain) {
         if (url == null || url.isEmpty()) {
             return false;
         }
-        return url.startsWith(domain + "/") && !url.contains("#");
+        boolean isValidHead = url.startsWith(domain + "/") || url.startsWith("/");
+        boolean isValidTail = !url.endsWith(".jpeg") || !url.endsWith(".jpg") ||
+                !url.endsWith(".png") || !url.endsWith(".pdf");
+        return  isValidHead && isValidTail && !url.contains("#");
     }
 
-    private boolean isNotMainUrl(String url) {
-        return !url.equals(this.url) && !url.equals(this.url + "/");
-    }
-
-    private boolean isNotDomain(String url) {
+    private boolean isNotDomain(String url, String domain) {
         return !url.equals(domain) && !url.equals(domain + "/");
     }
 
-    private void set(boolean error, Document document, int code, String body) {
-        this.error = error;
+    private void startDelay() {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void set(Document document, int code, String body) {
         this.document = document;
         this.code = code;
         this.body = body;

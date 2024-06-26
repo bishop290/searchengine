@@ -1,6 +1,7 @@
 package searchengine.integration.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,6 @@ class ApiControllerTest {
     @DisplayName("\"startIndexing\" good request")
     void startIndexing() throws Exception {
         mockMvc.perform(get("/api/startIndexing"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk());
     }
 }

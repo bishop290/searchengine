@@ -18,7 +18,7 @@ public class DatabaseWorker {
 
     public static <T> T get(Class<T> entity, NamedParameterJdbcTemplate jdbc) {
         final String tableName = entity.getAnnotation(Table.class).name();
-        final String query = String.format("select * from %s", tableName);
+        final String query = String.format("select * from %s order by id desc limit 1", tableName);
         return jdbc.queryForObject(query, new HashMap<>(),
                 new BeanPropertyRowMapper<>(entity, false));
     }

@@ -10,10 +10,9 @@ import searchengine.config.Site;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
-import searchengine.managers.SiteEntitiesManager;
+import searchengine.managers.SitesManager;
 import searchengine.model.SiteEntity;
 import searchengine.model.Status;
-import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
 import java.util.ArrayList;
@@ -26,10 +25,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("\"SiteEntityManager\" integration tests")
 class SiteEntitiesManagerTest extends TestContainer {
     private final SiteRepository siteRepository;
-    private final PageRepository pageRepository;
     private final NamedParameterJdbcTemplate jdbc;
     private static List<Site> sites = new ArrayList<>();
-    private SiteEntitiesManager manager;
+    private SitesManager manager;
 
     @BeforeAll
     public static void setSites() {
@@ -41,7 +39,7 @@ class SiteEntitiesManagerTest extends TestContainer {
 
     @BeforeEach
     public void createManager() {
-        manager = new SiteEntitiesManager(siteRepository, pageRepository);
+        manager = new SitesManager(siteRepository);
     }
 
     @Test
