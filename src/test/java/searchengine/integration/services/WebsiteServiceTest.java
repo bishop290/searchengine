@@ -1,4 +1,4 @@
-package searchengine.integration.managers;
+package searchengine.integration.services;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeAll;
@@ -7,13 +7,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import searchengine.config.Site;
+import searchengine.config.SitesList;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
-import searchengine.managers.SitesManager;
 import searchengine.model.SiteEntity;
 import searchengine.model.Status;
 import searchengine.repositories.SiteRepository;
+import searchengine.services.WebsiteService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,24 +23,27 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @IntegrationTest
 @RequiredArgsConstructor
-@DisplayName("\"SiteEntityManager\" integration tests")
-class SiteEntitiesManagerTest extends TestContainer {
+@DisplayName("\"WebsiteService\" integration tests")
+class WebsiteServiceTest extends TestContainer {
     private final SiteRepository siteRepository;
     private final NamedParameterJdbcTemplate jdbc;
-    private static List<Site> sites = new ArrayList<>();
-    private SitesManager manager;
+    private static SitesList sitesList;
+    private WebsiteService service;
 
     @BeforeAll
     public static void setSites() {
         int numberOfSites = 4;
+        List<Site> sites = new ArrayList<>();
         for (int i = 0; i < numberOfSites; i++) {
             sites.add(Site.builder().url("www.google.com" + i).name("Google" + i).build());
         }
+        sitesList = new SitesList();
+        sitesList.setSites(sites);
     }
 
     @BeforeEach
-    public void createManager() {
-        manager = new SitesManager(siteRepository);
+    public void init() {
+        service = new WebsiteService(siteRepository, sitesList);
     }
 
     @Test
@@ -49,10 +53,10 @@ class SiteEntitiesManagerTest extends TestContainer {
         String urlOfTheFirstEntity = "www.google.com0";
         String nameOfTheSecondEntity = "Google0";
 
-        manager.createEntities(sites);
-        SiteEntity entity =  manager.getSiteEntities().get(0);
+        service.createEntities();
+        SiteEntity entity = service.getSiteEntities().get(0);
 
-        assertEquals(numberOfEntities, manager.getSiteEntities().size());
+        assertEquals(numberOfEntities, service.getSiteEntities().size());
         assertNull(entity.getId());
         assertEquals(urlOfTheFirstEntity, entity.getUrl());
         assertEquals(nameOfTheSecondEntity, entity.getName());
@@ -66,8 +70,8 @@ class SiteEntitiesManagerTest extends TestContainer {
     public void testSaveToDatabase() {
         int numberOfRowsInDb = 4;
 
-        manager.createEntities(sites);
-        manager.saveToDatabase();
+        service.createEntities();
+        service.saveToDatabase();
 
         assertEquals(numberOfRowsInDb, DatabaseWorker.count("site", jdbc));
     }

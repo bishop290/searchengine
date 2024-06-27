@@ -1,8 +1,11 @@
-package searchengine.managers;
+package searchengine.services;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.stereotype.Service;
 import searchengine.config.Site;
+import searchengine.config.SitesList;
 import searchengine.model.SiteEntity;
 import searchengine.model.Status;
 import searchengine.repositories.SiteRepository;
@@ -12,16 +15,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@RequiredArgsConstructor
-public class SitesManager {
+@Service
+public class WebsiteService {
     private final SiteRepository siteRepository;
-    private final List<SiteEntity> siteEntities = new ArrayList<>();
+    private final SitesList sites;
+    private final List<SiteEntity> siteEntities;
 
-    public void createEntities(List<Site> sites) {
-        if (sites.isEmpty()) {
+    public WebsiteService(SiteRepository siteRepository, SitesList sites) {
+        this.siteRepository = siteRepository;
+        this.sites = sites;
+        this.siteEntities = new ArrayList<>();
+    }
+
+    public void createEntities() {
+        if (sites.getSites().isEmpty()) {
             return;
         }
-        for (Site site : sites) {
+        for (Site site : sites.getSites()) {
             SiteEntity siteEntity = SiteEntity.builder()
                     .status(Status.INDEXING)
                     .statusTime(new Timestamp(System.currentTimeMillis()))
@@ -35,5 +45,9 @@ public class SitesManager {
 
     public void saveToDatabase() {
         siteRepository.saveAllAndFlush(siteEntities);
+    }
+
+    public void clearAll() {
+        siteRepository.deleteAllInBatch();
     }
 }

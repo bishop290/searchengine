@@ -1,13 +1,15 @@
-package searchengine.managers;
+package searchengine.services;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Service;
+import searchengine.config.JsoupSettings;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,8 +18,11 @@ import java.util.List;
 import java.util.Set;
 
 @Getter
-@RequiredArgsConstructor
-public class PageJsoupManager {
+@Service
+public class JsoupService {
+    private final static int MINIMAL_DELAY = 1000;
+
+    private final JsoupSettings jsoupSettings;
     private final Connection connection;
     private final int delay;
 
@@ -25,6 +30,14 @@ public class PageJsoupManager {
     private Document document;
     private int code = -1;
     private String body = "";
+
+    public JsoupService(JsoupSettings jsoupSettings) {
+        this.jsoupSettings = jsoupSettings;
+        this.connection = Jsoup.newSession()
+                .userAgent(jsoupSettings.getAgent())
+                .referrer(jsoupSettings.getReferrer());
+        this.delay = Math.max(jsoupSettings.getDelay(), MINIMAL_DELAY);
+    }
 
     public void connect(String url) {
         startDelay();

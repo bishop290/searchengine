@@ -1,18 +1,19 @@
 package searchengine.managers;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.model.Status;
+import searchengine.services.JsoupService;
+import searchengine.services.PageService;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 public class PagesManager {
     private final SiteEntity siteEntity;
-    private final PageJsoupManager jsoupManager;
-    private final PageEntitiesManager entitiesManager;
+    private final JsoupService jsoupManager;
+    private final PageService entitiesManager;
 
     private final PageLinksCache cache = new PageLinksCache();
     private boolean stopFlag = false;

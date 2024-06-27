@@ -13,4 +13,10 @@ public class JsoupSettings {
     private String agent;
     private String referrer;
     private int delay;
+
+    {
+        this.agent = "";
+        this.referrer = "";
+        this.delay = 1000;
+    }
 }

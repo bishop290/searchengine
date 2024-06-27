@@ -1,4 +1,4 @@
-package searchengine.integration.managers;
+package searchengine.integration.services;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -8,15 +8,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import searchengine.config.EntitySettings;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
-import searchengine.managers.PageEntitiesManager;
+import searchengine.repositories.PageRepository;
+import searchengine.repositories.SiteRepository;
+import searchengine.services.PageService;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.model.Status;
-import searchengine.repositories.PageRepository;
-import searchengine.repositories.SiteRepository;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -26,16 +27,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @IntegrationTest
 @RequiredArgsConstructor
-@DisplayName("\"PageEntityManager\" integration tests")
-class PageEntitiesManagerTest extends TestContainer {
+@DisplayName("\"PageService\" integration tests")
+class PageServiceTest extends TestContainer {
+    private final NamedParameterJdbcTemplate namedJdbc;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
-    private final NamedParameterJdbcTemplate namedJdbc;
     private final JdbcTemplate jdbc;
-    private PageEntitiesManager manager;
+    private PageService manager;
 
     private final EntityManager entityManager;
 
+    private static EntitySettings settings;
     private static String path;
     private static Integer code;
     private static String content;
@@ -55,11 +57,14 @@ class PageEntitiesManagerTest extends TestContainer {
                 .lastError("This is last error")
                 .url(siteUrl)
                 .name("Google").build();
+
+        settings = new EntitySettings();
+        settings.setInsertLimit(100);
     }
 
     @BeforeEach
     public void init() {
-        manager = new PageEntitiesManager(100, siteRepository, pageRepository);
+        manager = new PageService(settings, siteRepository, pageRepository);
         DatabaseWorker.saveToDb(site, siteRepository, entityManager);
     }
 
