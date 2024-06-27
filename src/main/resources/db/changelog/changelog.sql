@@ -16,8 +16,21 @@ create table `page` (`id` int not null auto_increment,
                      `code` int not null,
                      `content` mediumtext not null,
                      primary key (`id`),
-                     foreign key (site_id) references site(id));
+                     foreign key (`site_id`) references site(`id`));
 
 --changeset Grigorii_Kuznetsov:3
 create index `idx_path` ON `page` (`path`(20));
 
+--changeset Grigorii_Kuznetsov:4
+create table `lemma` (`id` int not null auto_increment,
+                      `site_id` int not null,
+                      `lemma` varchar(255) not null,
+                      `frequency` int not null,
+                      primary key (`id`));
+
+--changeset Grigorii_Kuznetsov:5
+create table `index` (`id` int not null auto_increment,
+                      `page_id` int not null,
+                      `lemma_id` int not null,
+                      `rank` float not null,
+                      primary key (`id`));
