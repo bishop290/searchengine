@@ -15,6 +15,7 @@ import java.util.HashMap;
 @Service
 public class PageService {
     private static final int MINIMAL_LIMIT = 100;
+
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
 

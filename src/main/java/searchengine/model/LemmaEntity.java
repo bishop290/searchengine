@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "page")
+@Table(name = "lemma")
 public class LemmaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "index")
+@Table(name = "`index`")
 public class IndexEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +25,6 @@ public class IndexEntity {
     @JoinColumn(name = "lemma_id")
     private LemmaEntity lemma;
 
-    @Column(name = "rank")
-    private Float rank;
+    @Column(name = "`rank`")
+    private float rank;
 }

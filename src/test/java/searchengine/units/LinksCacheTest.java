@@ -2,13 +2,13 @@ package searchengine.units;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import searchengine.managers.PageLinksCache;
+import searchengine.managers.LinksCache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("\"LinksCache\" unit test")
 class LinksCacheTest {
-    PageLinksCache cache = new PageLinksCache();
+    LinksCache cache = new LinksCache();
 
     @Test
     @DisplayName("Recount test")

@@ -15,7 +15,7 @@ public class PagesManager {
     private final JsoupService jsoupManager;
     private final PageService entitiesManager;
 
-    private final PageLinksCache cache = new PageLinksCache();
+    private final LinksCache cache = new LinksCache();
     private boolean stopFlag = false;
 
     public void stop() {

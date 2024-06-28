@@ -9,10 +9,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
-import searchengine.model.PageEntity;
+import searchengine.model.LemmaEntity;
 import searchengine.model.SiteEntity;
 import searchengine.model.Status;
-import searchengine.repositories.PageRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.SiteRepository;
 
 import java.sql.Timestamp;
@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @IntegrationTest
 @RequiredArgsConstructor
-@DisplayName("\"PageRepository\" integration tests")
-class PageRepositoryTest extends TestContainer {
+@DisplayName("\"LemmaRepository\" integration tests")
+class LemmaRepositoryTest extends TestContainer {
+    private final LemmaRepository repository;
     private final SiteRepository siteRepository;
-    private final PageRepository pageRepository;
     private final EntityManager entityManager;
     private final NamedParameterJdbcTemplate jdbc;
 
@@ -50,17 +50,23 @@ class PageRepositoryTest extends TestContainer {
     }
 
     @Test
-    @DisplayName("Save \"Page\" entity to db")
+    @DisplayName("Save \"Lemma\" entity to db")
     public void testSaveToDb() {
+        String lemma = "Это лемма";
+        Integer freq = 10;
+
         DatabaseWorker.saveToDb(site, siteRepository, entityManager);
-        PageEntity page = PageEntity.builder()
-                .site(site).path(path).code(code).content(content).build();
 
-        DatabaseWorker.saveToDb(page, pageRepository, entityManager);
-        PageEntity savedPage = DatabaseWorker.get(PageEntity.class, jdbc);
+        LemmaEntity lemmaEntity = LemmaEntity.builder()
+                .site(site)
+                .lemma(lemma)
+                .frequency(freq)
+                .build();
 
-        assertEquals(savedPage.getPath(), path);
-        assertEquals(savedPage.getCode(), code);
-        assertEquals(savedPage.getContent(), content);
+        DatabaseWorker.saveToDb(lemmaEntity, repository, entityManager);
+        LemmaEntity savedLemma = DatabaseWorker.get(LemmaEntity.class, jdbc);
+
+        assertEquals(lemma, savedLemma.getLemma());
+        assertEquals(freq, savedLemma.getFrequency());
     }
 }
