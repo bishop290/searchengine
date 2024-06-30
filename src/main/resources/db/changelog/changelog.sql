@@ -19,7 +19,7 @@ create table `page` (`id` int not null auto_increment,
                      foreign key (`site_id`) references site(`id`));
 
 --changeset Grigorii_Kuznetsov:3
-create index `idx_path` ON `page` (`path`(20));
+create index `idx_path` ON `page` (`path`(40));
 
 --changeset Grigorii_Kuznetsov:4
 create table `lemma` (`id` int not null auto_increment,
@@ -34,3 +34,6 @@ create table `index` (`id` int not null auto_increment,
                       `lemma_id` int not null,
                       `rank` float not null,
                       primary key (`id`));
+
+--changeset Grigorii_Kuznetsov:6
+create index `idx_lemma` ON `lemma` (`lemma`(20));

@@ -8,10 +8,14 @@ import java.io.IOException;
 import java.util.*;
 
 public class TextManager {
-    private LuceneMorphology rusMorphology;
-    Set<String> exceptions = new HashSet<>(Arrays.asList("СОЮЗ", "МЕЖД", "ПРЕДЛ", "ЧАСТ"));
+    private static LuceneMorphology rusMorphology;
+    private static final Set<String> EXCEPTIONS = new HashSet<>(
+            Arrays.asList("СОЮЗ", "МЕЖД", "ПРЕДЛ", "ЧАСТ"));
 
     public boolean init() {
+        if (rusMorphology != null) {
+            return true;
+        }
         try {
             rusMorphology = new RussianLuceneMorphology();
         } catch (IOException e) {
@@ -36,10 +40,6 @@ public class TextManager {
         return lemmas;
     }
 
-    public String clearTags(String text) {
-        return text.replaceAll("<[^>]*>", "");
-    }
-
     private boolean isValidWord(String word) {
         if (word.isEmpty()) {
             return false;
@@ -58,7 +58,7 @@ public class TextManager {
         for (String data : info) {
             String[] infoSubstrings = data.split(" ");
             String type = infoSubstrings[infoSubstrings.length - 1].strip();
-            if (exceptions.contains(type)) {
+            if (EXCEPTIONS.contains(type)) {
                 return false;
             }
         }

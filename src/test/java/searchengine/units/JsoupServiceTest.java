@@ -14,6 +14,7 @@ import searchengine.services.JsoupService;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,6 +64,7 @@ class JsoupServiceTest {
         File input = new File(testPage);
         Document doc = Jsoup.parse(input, "UTF-8", domain);
         jsoupService.setDocument(doc);
+        List<String> links = jsoupService.getLinks(domain);
         assertEquals(numberOfLinks, jsoupService.getLinks(domain).size());
     }
 }

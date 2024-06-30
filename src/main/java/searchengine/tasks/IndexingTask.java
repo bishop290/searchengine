@@ -1,13 +1,13 @@
 package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
-import searchengine.managers.PagesManager;
+import searchengine.managers.PageManager;
 
 import java.util.concurrent.ForkJoinPool;
 
 @RequiredArgsConstructor
 public class IndexingTask implements Runnable {
-    private final PagesManager manager;
+    private final PageManager manager;
 
     private Thread thread;
     private final ForkJoinPool pool = new ForkJoinPool();
@@ -40,7 +40,6 @@ public class IndexingTask implements Runnable {
     public void run() {
         pool.invoke(new ParsingTask(manager.domain(), manager));
         pool.shutdown();
-        manager.save();
         manager.statusIndexed();
         manager.stop();
     }

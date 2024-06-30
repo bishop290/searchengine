@@ -1,7 +1,7 @@
 package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
-import searchengine.managers.PagesManager;
+import searchengine.managers.PageManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.concurrent.RecursiveAction;
 @RequiredArgsConstructor
 public class ParsingTask extends RecursiveAction {
     private final String url;
-    private final PagesManager manager;
+    private final PageManager manager;
 
     @Override
     protected void compute() {
@@ -29,7 +29,7 @@ public class ParsingTask extends RecursiveAction {
         fork(manager);
     }
 
-    private void fork(PagesManager manager) {
+    private void fork(PageManager manager) {
         if (manager.isStop()) {
             return;
         }

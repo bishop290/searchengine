@@ -49,15 +49,4 @@ class TextManagerTest {
         assertEquals(size, lemmas.size());
         assertEquals(numberOfLeopards, lemmas.get(word));
     }
-
-    @Test
-    @DisplayName("Clear all tags")
-    void testClearTags() {
-        int size = 4;
-
-        manager.init();
-        String result = manager.clearTags(html);
-        Map<String, Integer> lemmas = manager.lemmas(result);
-        assertEquals(size, lemmas.size());
-    }
 }

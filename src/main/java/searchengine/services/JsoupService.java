@@ -26,10 +26,10 @@ public class JsoupService {
     private final Connection connection;
     private final int delay;
 
+    private int code;
+    private String errorMessage;
     @Setter
     private Document document;
-    private int code = -1;
-    private String body = "";
 
     public JsoupService(JsoupSettings jsoupSettings) {
         this.jsoupSettings = jsoupSettings;
@@ -37,6 +37,8 @@ public class JsoupService {
                 .userAgent(jsoupSettings.getAgent())
                 .referrer(jsoupSettings.getReferrer());
         this.delay = Math.max(jsoupSettings.getDelay(), MINIMAL_DELAY);
+        this.code = -1;
+        this.errorMessage = "";
     }
 
     public void connect(String url) {
@@ -44,9 +46,9 @@ public class JsoupService {
         try {
             Connection.Response response = connection.newRequest().url(url).execute();
             document = response.parse();
-            set(document, response.statusCode(), document.body().html());
+            set(document, response.statusCode(), "");
         } catch (HttpStatusException e) {
-            set( null, e.getStatusCode(), e.getMessage());
+            set(null, e.getStatusCode(), e.getMessage());
         } catch (IOException e) {
             set(null, -1, e.getMessage());
         }
@@ -78,12 +80,12 @@ public class JsoupService {
     }
 
     private boolean isUrlValid(String url, String domain) {
+        String tailRegex = "^.*\\.(jpg|JPG|gif|GIF|doc|DOC|pdf|PDF|png|PNG|jpeg|JPEG)$";
         if (url == null || url.isEmpty()) {
             return false;
         }
         boolean isValidHead = url.startsWith(domain + "/") || url.startsWith("/");
-        boolean isValidTail = !url.endsWith(".jpeg") || !url.endsWith(".jpg") ||
-                !url.endsWith(".png") || !url.endsWith(".pdf");
+        boolean isValidTail = !url.matches(tailRegex);
         return  isValidHead && isValidTail && !url.contains("#");
     }
 
@@ -99,9 +101,9 @@ public class JsoupService {
         }
     }
 
-    private void set(Document document, int code, String body) {
+    private void set(Document document, int code, String errorMessage) {
         this.document = document;
         this.code = code;
-        this.body = body;
+        this.errorMessage = errorMessage;
     }
 }

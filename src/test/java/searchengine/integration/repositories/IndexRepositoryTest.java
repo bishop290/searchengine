@@ -52,7 +52,6 @@ class IndexRepositoryTest extends TestContainer {
                 .lemma("ягуар")
                 .frequency(10)
                 .build();
-        DatabaseWorker.saveToDb(lemma, lemmaRepository, entityManager);
 
         float rank = 0.1f;
         IndexEntity index = IndexEntity.builder()
@@ -60,6 +59,7 @@ class IndexRepositoryTest extends TestContainer {
                 .lemma(lemma)
                 .rank(rank).build();
 
+        DatabaseWorker.saveToDb(lemma, lemmaRepository, entityManager);
         DatabaseWorker.saveToDb(index, indexRepository, entityManager);
 
         IndexEntity savedIndex = DatabaseWorker.get(IndexEntity.class, jdbc);

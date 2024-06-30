@@ -8,36 +8,36 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import searchengine.config.EntitySettings;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
+import searchengine.repositories.IndexRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.PageService;
-import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.model.Status;
 
 import java.sql.Timestamp;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @IntegrationTest
 @RequiredArgsConstructor
-@DisplayName("\"PageService\" integration tests")
+@DisplayName("\"EntityService\" integration tests")
 class PageServiceTest extends TestContainer {
     private final NamedParameterJdbcTemplate namedJdbc;
     private final SiteRepository siteRepository;
+    private final LemmaRepository lemmaRepository;
     private final PageRepository pageRepository;
+    private final IndexRepository indexRepository;
     private final JdbcTemplate jdbc;
     private PageService manager;
 
     private final EntityManager entityManager;
 
-    private static EntitySettings settings;
     private static String path;
     private static Integer code;
     private static String content;
@@ -58,38 +58,12 @@ class PageServiceTest extends TestContainer {
                 .url(siteUrl)
                 .name("Google").build();
 
-        settings = new EntitySettings();
-        settings.setInsertLimit(100);
     }
 
     @BeforeEach
     public void init() {
-        manager = new PageService(settings, siteRepository, pageRepository);
+        manager = new PageService(siteRepository, lemmaRepository, pageRepository, indexRepository);
         DatabaseWorker.saveToDb(site, siteRepository, entityManager);
-    }
-
-    @Test
-    @DisplayName("Save entities to database")
-    void testSaveEntities() {
-        int counter = 101;
-        int numberEntitiesInManager = 1;
-        int numberEntitiesToDb = 100;
-        String entityPath = path + "0";
-
-
-        for (int i = 0; i < counter; i++) {
-            manager.saveEntities(PageEntity.builder()
-                    .site(site)
-                    .path(path + i)
-                    .code(code)
-                    .content(content + i)
-                    .build());
-        }
-        assertEquals(numberEntitiesInManager, manager.getEntities().size());
-
-        List<PageEntity> entities = pageRepository.findAll();
-        assertEquals(numberEntitiesToDb, entities.size());
-        assertEquals(siteUrl, entities.get(0).getSite().getUrl());
     }
 
     @Test

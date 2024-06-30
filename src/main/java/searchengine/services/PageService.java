@@ -1,45 +1,40 @@
 package searchengine.services;
 
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.config.EntitySettings;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
-import searchengine.model.Status;
+import searchengine.model.*;
+import searchengine.repositories.IndexRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class PageService {
-    private static final int MINIMAL_LIMIT = 100;
-
     private final SiteRepository siteRepository;
+    private final LemmaRepository lemmaRepository;
     private final PageRepository pageRepository;
+    private final IndexRepository indexRepository;
 
-    private final int limit;
-    @Getter
-    private final HashMap<String, PageEntity> entities;
-
-    public PageService(EntitySettings entitySettings, SiteRepository siteRepository, PageRepository pageRepository) {
-        this.siteRepository = siteRepository;
-        this.pageRepository = pageRepository;
-        this.entities = new HashMap<>();
-        this.limit = Math.max(entitySettings.getInsertLimit(), MINIMAL_LIMIT);
+    public synchronized List<LemmaEntity> getLemmas(SiteEntity site, Set<String> names) {
+        return lemmaRepository.findBySiteAndLemmaIn(site, names);
     }
 
-    public synchronized void saveEntities() {
-        pageRepository.saveAllAndFlush(entities.values());
-        entities.clear();
+    public synchronized void saveLemmas(List<LemmaEntity> lemmas) {
+        lemmaRepository.saveAllAndFlush(lemmas);
     }
 
-    public synchronized void saveEntities(PageEntity pageEntity) {
-        if (entities.size() == limit) {
-            saveEntities();
-        }
-        entities.put(pageEntity.getPath(), pageEntity);
+    public synchronized void savePage(PageEntity page) {
+        pageRepository.saveAndFlush(page);
+    }
+
+    public synchronized void saveIndexes(List<IndexEntity> indexes) {
+        indexRepository.saveAllAndFlush(indexes);
     }
 
     public synchronized void siteUpdate(SiteEntity site, Status status, String lastError) {

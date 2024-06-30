@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import searchengine.dto.indexing.IndexingResponse;
 import searchengine.exceptions.IndexingIsAlreadyRunningException;
 import searchengine.exceptions.IndexingIsNotRunningException;
-import searchengine.managers.PagesManager;
+import searchengine.managers.PageManager;
 import searchengine.model.SiteEntity;
 import searchengine.tasks.IndexingTask;
 
@@ -44,7 +44,7 @@ public class IndexingServiceImpl implements IndexingService {
 
     private void createTasks(List<SiteEntity> sites) {
         sites.forEach(entity -> {
-            IndexingTask task = new IndexingTask(new PagesManager(entity, jsoupService, pageService));
+            IndexingTask task = new IndexingTask(new PageManager(entity, jsoupService, pageService));
             task.start();
             tasks.add(task);
         });
@@ -52,6 +52,7 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     private void clearData() {
+        //добавить очистку по сайтам в index, lemma
         pageService.clearAll();
         websiteService.clearAll();
     }

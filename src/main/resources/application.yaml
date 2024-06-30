@@ -8,15 +8,11 @@ spring:
     password: OGI2Y2MxYmE2YzMyNjIx
   jpa:
     hibernate.ddl-auto: none
-    show-sql: true
+    #show-sql: true
     open-in-view: false
     properties.hibernate:
-      format_sql: true
-      use_sql_comments: true
-      #order_inserts: true
-      #generate_statistics: true
-      #jdbc:
-      #  batch_size: 100
+    #  format_sql: true
+    #  use_sql_comments: true
 
   liquibase:
     change-log: classpath:db/changelog/changelog.sql
@@ -25,19 +21,18 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://ipfran.ru
-      name: Институт прикладной физики им. А.В. Гапонова-Грехова
+    #- url: https://ipfran.ru
+    #  name: Институт прикладной физики им. А.В. Гапонова-Грехова
     - url: https://dombulgakova.ru
       name: Дом Булгакова. Музей Театр
     - url: https://nikoartgallery.com
       name: Галерея Никогосяна
-    - url: https://www.svetlovka.ru/
-      name: Библиотека Светловка
+    #- url: https://www.svetlovka.ru/
+    #  name: Библиотека Светловка
+    - url: https://sendel.ru/
+      name: sendel
 
 jsoup-settings:
   agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36
   referrer: https://www.google.com
   delay: 1000
-
-entity-settings:
-  insert-limit: 400
