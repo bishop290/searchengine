@@ -17,13 +17,8 @@ public class ParsingTask extends RecursiveAction {
     @Override
     protected void compute() {
         JsoupData data = manager.parse(url);
-        boolean dataIsNotValid = !data.isValid();
 
-        if (manager.isDomain(url) && dataIsNotValid) {
-            manager.statusFailed(data);
-            manager.stop();
-            return;
-        } else if (dataIsNotValid) {
+        if (isChecksFail(manager, data)) {
             return;
         }
 
@@ -45,5 +40,22 @@ public class ParsingTask extends RecursiveAction {
             }
         });
         tasks.forEach(ForkJoinTask::join);
+    }
+
+    private boolean isChecksFail(PageManager manager, JsoupData data) {
+        boolean dataIsNotValid = !data.isValid();
+        if (manager.isDomain(url) && dataIsNotValid) {
+            manager.statusFailed(data);
+            manager.stop();
+            return true;
+        } else if (!manager.initTextService()) {
+            String message = "Error: TextService didnt start";
+            manager.statusFailed(new JsoupData(url, -1, null, message));
+            manager.stop();
+            return true;
+        } else if (dataIsNotValid) {
+            return true;
+        }
+        return false;
     }
 }

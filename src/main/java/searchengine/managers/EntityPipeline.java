@@ -5,8 +5,8 @@ import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
-import searchengine.services.JsoupService;
 import searchengine.services.PageService;
+import searchengine.services.TextService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,16 +18,12 @@ public class EntityPipeline {
     private final SiteEntity site;
     private final JsoupData data;
     private final PageService pageService;
-    TextManager textManager;
+    private final TextService textService;
 
     public void run() {
-        textManager = new TextManager();
-        textManager.init();
-        List<IndexEntity> indexes = new ArrayList<>();
         PageEntity page = savePage();
         Map<String, Integer> lemmasInText = parseBody();
-        saveLemmas(page, lemmasInText, indexes);
-        pageService.saveIndexes(indexes);
+        save(page, lemmasInText);
     }
 
     private PageEntity savePage() {
@@ -37,19 +33,21 @@ public class EntityPipeline {
     }
 
     private Map<String, Integer> parseBody() {
-        return textManager.lemmas(data.document().body().text());
+        return textService.lemmas(data.document().body().text());
     }
 
-    private synchronized void saveLemmas(PageEntity page, Map<String, Integer> lemmasInText, List<IndexEntity> indexes) {
+    private synchronized void save(PageEntity page, Map<String, Integer> lemmasInText) {
         List<LemmaEntity> lemmas = pageService.getLemmas(site, lemmasInText.keySet());
-
         HashMap<String, LemmaEntity> lemmasFromDb = new HashMap<>();
+
         for (LemmaEntity lemma : lemmas) {
             lemma.setFrequency(lemma.getFrequency() + 1);
             lemmasFromDb.put(lemma.getLemma(), lemma);
         }
 
         List<LemmaEntity> lemmasForSave = new ArrayList<>();
+        List<IndexEntity> indexes = new ArrayList<>();
+
         for (Map.Entry<String, Integer> lemma : lemmasInText.entrySet()) {
             LemmaEntity currentLemma;
             if (lemmasFromDb.containsKey(lemma.getKey())) {
@@ -62,11 +60,12 @@ public class EntityPipeline {
             indexes.add(createIndex(page, currentLemma, lemma.getValue()));
         }
         pageService.saveLemmas(lemmasForSave);
+        pageService.saveIndexes(indexes);
     }
 
     private PageEntity createPage() {
         return PageEntity.builder()
-                .path(textManager.path(data.url(), site.getUrl()))
+                .path(textService.path(data.url(), site.getUrl()))
                 .site(site)
                 .code(data.code())
                 .content(data.document().body().html())

@@ -18,6 +18,7 @@ public class IndexingServiceImpl implements IndexingService {
     private final WebsiteService websiteService;
     private final PageService pageService;
     private final JsoupService jsoupService;
+    private final TextService textService;
     private final List<IndexingTask> tasks = new ArrayList<>();
 
     @Override
@@ -44,7 +45,8 @@ public class IndexingServiceImpl implements IndexingService {
 
     private void createTasks(List<SiteEntity> sites) {
         sites.forEach(entity -> {
-            IndexingTask task = new IndexingTask(new PageManager(entity, jsoupService, pageService));
+            IndexingTask task = new IndexingTask(
+                    new PageManager(entity, jsoupService, pageService, textService));
             task.start();
             tasks.add(task);
         });

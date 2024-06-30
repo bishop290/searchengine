@@ -5,7 +5,9 @@ import searchengine.model.SiteEntity;
 import searchengine.model.Status;
 import searchengine.services.JsoupService;
 import searchengine.services.PageService;
+import searchengine.services.TextService;
 
+import java.io.IOException;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -13,6 +15,7 @@ public class PageManager {
     private final SiteEntity siteEntity;
     private final JsoupService jsoupService;
     private final PageService pageService;
+    private final TextService textService;
     private final LinksCache cache = new LinksCache();
     private boolean stopFlag = false;
 
@@ -30,6 +33,15 @@ public class PageManager {
 
     public boolean isDomain(String url) {
         return jsoupService.isDomain(url, siteEntity.getUrl());
+    }
+
+    public boolean initTextService() {
+        try {
+            textService.init();
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
     }
 
     public void statusStop() {
@@ -68,7 +80,7 @@ public class PageManager {
         if (stopFlag) {
             return;
         }
-        new EntityPipeline(siteEntity, data, pageService)
+        new EntityPipeline(siteEntity, data, pageService, textService)
                 .run();
     }
 }

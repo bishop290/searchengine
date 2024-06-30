@@ -1,28 +1,24 @@
-package searchengine.managers;
+package searchengine.services;
 
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.WrongCharaterException;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
 
-public class TextManager {
-    private static LuceneMorphology rusMorphology;
+@Service
+public class TextService {
     private static final Set<String> EXCEPTIONS = new HashSet<>(
             Arrays.asList("СОЮЗ", "МЕЖД", "ПРЕДЛ", "ЧАСТ"));
+    private static LuceneMorphology rusMorphology;
 
-    public boolean init() {
+    public void init() throws IOException {
         if (rusMorphology != null) {
-            return true;
+            return;
         }
-        try {
-            rusMorphology = new RussianLuceneMorphology();
-        } catch (IOException e) {
-            // выход завершение
-            return false;
-        }
-        return true;
+        rusMorphology = new RussianLuceneMorphology();
     }
 
     public Map<String, Integer> lemmas(String text) {

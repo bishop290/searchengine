@@ -56,7 +56,7 @@ public class JsoupService {
         for (Element link : links) {
             String absLink = link.attr("abs:href");
             if (isUrlValid(absLink, domain) && !isDomain(absLink, domain)) {
-                urls.add(absLink);
+                urls.add(addSlash(absLink));
             }
         }
         return new ArrayList<>(urls);
@@ -82,5 +82,9 @@ public class JsoupService {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String addSlash(String url) {
+        return url.matches("^.*(/)$") ? url : url + "/";
     }
 }

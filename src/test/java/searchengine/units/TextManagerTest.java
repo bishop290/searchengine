@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import searchengine.managers.TextManager;
+import searchengine.services.TextService;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -34,11 +34,11 @@ class TextManagerTest {
                 <слон>
             </footer>
             """;
-    private TextManager manager;
+    private TextService manager;
 
     @BeforeEach
     void init()  {
-        manager = new TextManager();
+        manager = new TextService();
     }
 
     public static Stream<Arguments> urlProvider() {
