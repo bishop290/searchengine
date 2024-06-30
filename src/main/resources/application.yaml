@@ -8,11 +8,11 @@ spring:
     password: OGI2Y2MxYmE2YzMyNjIx
   jpa:
     hibernate.ddl-auto: none
-    #show-sql: true
+    show-sql: true
     open-in-view: false
     properties.hibernate:
-    #  format_sql: true
-    #  use_sql_comments: true
+      format_sql: true
+      use_sql_comments: true
 
   liquibase:
     change-log: classpath:db/changelog/changelog.sql

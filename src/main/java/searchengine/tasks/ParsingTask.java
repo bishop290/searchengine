@@ -1,6 +1,7 @@
 package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
+import searchengine.managers.JsoupData;
 import searchengine.managers.PageManager;
 
 import java.util.ArrayList;
@@ -15,28 +16,28 @@ public class ParsingTask extends RecursiveAction {
 
     @Override
     protected void compute() {
-        boolean isParsed = manager.parse(url);
+        JsoupData data = manager.parse(url);
+        boolean dataIsNotValid = !data.isValid();
 
-        if (url.equals(manager.domain()) && !isParsed) {
-            manager.statusFailed();
+        if (manager.isDomain(url) && dataIsNotValid) {
+            manager.statusFailed(data);
             manager.stop();
             return;
-        } else if (!isParsed) {
+        } else if (dataIsNotValid) {
             return;
         }
 
-        manager.save(url);
-        fork(manager);
+        manager.save(data);
+        fork(manager, data);
     }
 
-    private void fork(PageManager manager) {
+    private void fork(PageManager manager, JsoupData data) {
         if (manager.isStop()) {
             return;
         }
-
         List<ParsingTask> tasks = new ArrayList<>();
 
-        manager.links().forEach(link -> {
+        manager.links(data).forEach(link -> {
             if (manager.isNewUrl(link)) {
                 ParsingTask task = new ParsingTask(link, manager);
                 tasks.add(task);

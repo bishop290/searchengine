@@ -28,6 +28,10 @@ public class PageManager {
         return siteEntity.getUrl();
     }
 
+    public boolean isDomain(String url) {
+        return jsoupService.isDomain(url, siteEntity.getUrl());
+    }
+
     public void statusStop() {
         String text = "Индексация остановлена пользователем";
         pageService.siteUpdate(siteEntity, Status.FAILED, text);
@@ -40,32 +44,31 @@ public class PageManager {
         pageService.siteUpdate(siteEntity, Status.INDEXED, "");
     }
 
-    public void statusFailed() {
+    public void statusFailed(JsoupData data) {
         if (stopFlag) {
             return;
         }
-        String text = String.format("%d: %s", jsoupService.getCode(), jsoupService.getErrorMessage());
+        String text = String.format("%d: %s", data.code(), data.errorMessage());
         pageService.siteUpdate(siteEntity, Status.FAILED, text);
     }
 
-    public boolean parse(String url) {
-        jsoupService.connect(url);
-        return jsoupService.getDocument() != null && jsoupService.getCode() != -1;
+    public JsoupData parse(String url) {
+        return jsoupService.connect(url);
     }
 
-    public List<String> links() {
-        return jsoupService.getLinks(domain());
+    public List<String> links(JsoupData data) {
+        return jsoupService.getLinks(data.document(), domain());
     }
 
     public boolean isNewUrl(String url) {
         return !cache.containsLink(url);
     }
 
-    public void save(String url) {
+    public void save(JsoupData data) {
         if (stopFlag) {
             return;
         }
-        new EntityPipeline(siteEntity, url, jsoupService, pageService)
+        new EntityPipeline(siteEntity, data, pageService)
                 .run();
     }
 }

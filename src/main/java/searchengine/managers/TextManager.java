@@ -19,6 +19,7 @@ public class TextManager {
         try {
             rusMorphology = new RussianLuceneMorphology();
         } catch (IOException e) {
+            // выход завершение
             return false;
         }
         return true;
@@ -38,6 +39,15 @@ public class TextManager {
             }
         }
         return lemmas;
+    }
+
+    public String path(String url, String domain) {
+        domain = domain.replaceFirst("^*(/)$", "");
+        if (url.equals(domain) || url.equals(domain + "/")) {
+            return "/";
+        } else {
+            return url.replaceFirst(domain, "");
+        }
     }
 
     private boolean isValidWord(String word) {

@@ -16,11 +16,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EntityPipeline {
     private final SiteEntity site;
-    private final String url;
-    private final JsoupService jsoupService;
+    private final JsoupData data;
     private final PageService pageService;
+    TextManager textManager;
 
     public void run() {
+        textManager = new TextManager();
+        textManager.init();
         List<IndexEntity> indexes = new ArrayList<>();
         PageEntity page = savePage();
         Map<String, Integer> lemmasInText = parseBody();
@@ -35,11 +37,7 @@ public class EntityPipeline {
     }
 
     private Map<String, Integer> parseBody() {
-        TextManager textManager = new TextManager();
-        if (!textManager.init()) {
-            new HashMap<>();
-        }
-        return textManager.lemmas(jsoupService.getDocument().body().text());
+        return textManager.lemmas(data.document().body().text());
     }
 
     private synchronized void saveLemmas(PageEntity page, Map<String, Integer> lemmasInText, List<IndexEntity> indexes) {
@@ -68,10 +66,10 @@ public class EntityPipeline {
 
     private PageEntity createPage() {
         return PageEntity.builder()
-                .path(jsoupService.getPath(url, site.getUrl()))
+                .path(textManager.path(data.url(), site.getUrl()))
                 .site(site)
-                .code(jsoupService.getCode())
-                .content(jsoupService.getDocument().body().html())
+                .code(data.code())
+                .content(data.document().body().html())
                 .build();
     }
 

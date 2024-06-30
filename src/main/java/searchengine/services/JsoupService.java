@@ -1,7 +1,6 @@
 package searchengine.services;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -10,6 +9,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import searchengine.config.JsoupSettings;
+import searchengine.managers.JsoupData;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,15 +21,9 @@ import java.util.Set;
 @Service
 public class JsoupService {
     private final static int MINIMAL_DELAY = 1000;
-
     private final JsoupSettings jsoupSettings;
     private final Connection connection;
     private final int delay;
-
-    private int code;
-    private String errorMessage;
-    @Setter
-    private Document document;
 
     public JsoupService(JsoupSettings jsoupSettings) {
         this.jsoupSettings = jsoupSettings;
@@ -37,24 +31,22 @@ public class JsoupService {
                 .userAgent(jsoupSettings.getAgent())
                 .referrer(jsoupSettings.getReferrer());
         this.delay = Math.max(jsoupSettings.getDelay(), MINIMAL_DELAY);
-        this.code = -1;
-        this.errorMessage = "";
     }
 
-    public void connect(String url) {
+    public JsoupData connect(String url) {
         startDelay();
         try {
             Connection.Response response = connection.newRequest().url(url).execute();
-            document = response.parse();
-            set(document, response.statusCode(), "");
+            Document document = response.parse();
+            return new JsoupData(url, response.statusCode(), document, "");
         } catch (HttpStatusException e) {
-            set(null, e.getStatusCode(), e.getMessage());
+            return new JsoupData(url, e.getStatusCode(), null, e.getMessage());
         } catch (IOException e) {
-            set(null, -1, e.getMessage());
+            return new JsoupData(url, -1, null, e.getMessage());
         }
     }
 
-    public List<String> getLinks(String domain) {
+    public List<String> getLinks(Document document, String domain) {
         domain = domain.replaceFirst("^*(/)$", "");
         if (document == null) {
             return new ArrayList<>();
@@ -63,20 +55,15 @@ public class JsoupService {
         Elements links = document.select("a[href]");
         for (Element link : links) {
             String absLink = link.attr("abs:href");
-            if (isUrlValid(absLink, domain) && isNotDomain(absLink, domain)) {
+            if (isUrlValid(absLink, domain) && !isDomain(absLink, domain)) {
                 urls.add(absLink);
             }
         }
-        return urls.stream().toList();
+        return new ArrayList<>(urls);
     }
 
-    public String getPath(String url, String domain) {
-        domain = domain.replaceFirst("^*(/)$", "");
-        if (url.equals(domain) || url.equals(domain + "/")) {
-            return "/";
-        } else {
-            return url.replaceFirst(domain, "");
-        }
+    public boolean isDomain(String url, String domain) {
+        return url.equals(domain) || url.equals(domain + "/");
     }
 
     private boolean isUrlValid(String url, String domain) {
@@ -89,21 +76,11 @@ public class JsoupService {
         return  isValidHead && isValidTail && !url.contains("#");
     }
 
-    private boolean isNotDomain(String url, String domain) {
-        return !url.equals(domain) && !url.equals(domain + "/");
-    }
-
     private void startDelay() {
         try {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private void set(Document document, int code, String errorMessage) {
-        this.document = document;
-        this.code = code;
-        this.errorMessage = errorMessage;
     }
 }
