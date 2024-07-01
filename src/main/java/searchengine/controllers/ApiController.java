@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.indexing.IndexingResponse;
+import searchengine.dto.indexing.UrlRequest;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.services.IndexingService;
 import searchengine.services.StatisticsService;
@@ -33,7 +34,8 @@ public class ApiController {
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity<IndexingResponse> indexPage(@RequestBody String url) {
-        return new ResponseEntity<>(null, HttpStatus.OK);
+    public ResponseEntity<IndexingResponse> indexPage(@RequestBody UrlRequest urlRequest) {
+        return new ResponseEntity<>(
+                indexingService.startOnePage(urlRequest.url()), HttpStatus.OK);
     }
 }

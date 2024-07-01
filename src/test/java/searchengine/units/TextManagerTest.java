@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import searchengine.services.TextService;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -51,7 +52,7 @@ class TextManagerTest {
 
     @Test
     @DisplayName("Text to lemmas")
-    void testLemmas() {
+    void testLemmas() throws IOException {
         int size = 12;
         int numberOfLeopards = 2;
         String word = "леопард";

@@ -20,7 +20,7 @@ import java.util.Set;
 @Getter
 @Service
 public class JsoupService {
-    private final static int MINIMAL_DELAY = 1000;
+    private final static int MINIMAL_DELAY = 500;
     private final JsoupSettings jsoupSettings;
     private final Connection connection;
     private final int delay;
@@ -47,7 +47,7 @@ public class JsoupService {
     }
 
     public List<String> getLinks(Document document, String domain) {
-        domain = domain.replaceFirst("^*(/)$", "");
+        domain = domain.replaceFirst("^*/$", "");
         if (document == null) {
             return new ArrayList<>();
         }

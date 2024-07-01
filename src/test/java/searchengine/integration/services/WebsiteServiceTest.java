@@ -1,5 +1,6 @@
 package searchengine.integration.services;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import searchengine.model.Status;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.WebsiteService;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +31,7 @@ class WebsiteServiceTest extends TestContainer {
     private final NamedParameterJdbcTemplate jdbc;
     private static SitesList sitesList;
     private WebsiteService service;
+    private final EntityManager entityManager;
 
     @BeforeAll
     public static void setSites() {
@@ -74,5 +77,64 @@ class WebsiteServiceTest extends TestContainer {
         service.saveToDatabase();
 
         assertEquals(numberOfRowsInDb, DatabaseWorker.count("site", jdbc));
+    }
+
+    @Test
+    @DisplayName("Get possible urls")
+    public void testPossibleUrls() {
+        int result = 4;
+        List<Site> testSites = new ArrayList<>();
+        testSites.add(Site.builder().url("www.google.com").build());
+        testSites.add(Site.builder().url("www.duckduckgo.com/").build());
+        SitesList sites = new SitesList();
+        sites.setSites(testSites);
+        service = new WebsiteService(siteRepository, sites);
+
+        List<String> possibleUrls = service.getPossibleUrls();
+        assertEquals(result, possibleUrls.size());
+    }
+
+    @Test
+    @DisplayName("Find domain by Url")
+    public void testFindDomain() {
+        String url1 = "https://duckduckgo.com/hellokitty";
+        String url2 = "https://opennet.com/hellokitty";
+        List<Site> testSites = new ArrayList<>();
+        testSites.add(Site.builder().url("https://google.com").build());
+        testSites.add(Site.builder().url("https://duckduckgo.com/").build());
+        SitesList sites = new SitesList();
+        sites.setSites(testSites);
+        service = new WebsiteService(siteRepository, sites);
+
+        assertEquals(testSites.get(1).getUrl(), service.findDomain(url1).getUrl());
+        assertNull(service.findDomain(url2));
+    }
+
+    @Test
+    @DisplayName("Get site entity")
+    public void testGetSiteEntity() {
+        String resultName = "google";
+        Site site = Site.builder().url("https://google.com").name("").build();
+        Site site2 = Site.builder().url("https://duck.com").name("").build();
+        SiteEntity siteEntity = SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("This is last error")
+                .url(site.getUrl())
+                .name("google")
+                .build();
+        DatabaseWorker.saveToDb(siteEntity, siteRepository, entityManager);
+        assertEquals(resultName, service.getSite(site).getName());
+        assertNull(service.getSite(site2));
+
+    }
+
+    @Test
+    @DisplayName("Create site entity")
+    public void testCreateSiteEntity() {
+        String resultName = "hvahva";
+        Site site = Site.builder().url("https://google.com").name(resultName).build();
+        SiteEntity result = service.createSite(site);
+        assertEquals(resultName, result.getName());
     }
 }

@@ -13,20 +13,26 @@ import java.util.concurrent.RecursiveAction;
 public class ParsingTask extends RecursiveAction {
     private final String url;
     private final PageManager manager;
+    private JsoupData data;
 
     @Override
     protected void compute() {
-        JsoupData data = manager.parse(url);
-
-        if (isChecksFail(manager, data)) {
+        if (!parse()) {
             return;
         }
-
-        manager.save(data);
-        fork(manager, data);
+        forkForLinks();
     }
 
-    private void fork(PageManager manager, JsoupData data) {
+    public boolean parse() {
+        data = manager.parse(url);
+        if (isChecksFail()) {
+            return false;
+        }
+        manager.save(data);
+        return true;
+    }
+
+    private void forkForLinks() {
         if (manager.isStop()) {
             return;
         }
@@ -42,7 +48,7 @@ public class ParsingTask extends RecursiveAction {
         tasks.forEach(ForkJoinTask::join);
     }
 
-    private boolean isChecksFail(PageManager manager, JsoupData data) {
+    private boolean isChecksFail() {
         boolean dataIsNotValid = !data.isValid();
         if (manager.isDomain(url) && dataIsNotValid) {
             manager.statusFailed(data);

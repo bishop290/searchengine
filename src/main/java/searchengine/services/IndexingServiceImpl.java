@@ -2,17 +2,23 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import searchengine.config.Site;
 import searchengine.dto.indexing.IndexingResponse;
 import searchengine.exceptions.IndexingIsAlreadyRunningException;
 import searchengine.exceptions.IndexingIsNotRunningException;
+import searchengine.exceptions.PageDoesNotBelongToTheListedSites;
 import searchengine.managers.PageManager;
+import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.tasks.IndexingTask;
+import searchengine.tasks.ParsingTask;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService {
     private final WebsiteService websiteService;
@@ -26,7 +32,7 @@ public class IndexingServiceImpl implements IndexingService {
         if (tasks.stream().anyMatch(IndexingTask::isRunning)) {
             throw new IndexingIsAlreadyRunningException();
         }
-        clearData();
+        websiteService.clearAllByUrls();
         websiteService.createEntities();
         websiteService.saveToDatabase();
         createTasks(websiteService.getSiteEntities());
@@ -43,6 +49,16 @@ public class IndexingServiceImpl implements IndexingService {
         throw new IndexingIsNotRunningException();
     }
 
+    @Override
+    public IndexingResponse startOnePage(String url) {
+        Site site = websiteService.findDomain(url);
+        if (site == null) {
+            throw new PageDoesNotBelongToTheListedSites();
+        }
+        parseOnePage(url, site);
+        return new IndexingResponse(true);
+    }
+
     private void createTasks(List<SiteEntity> sites) {
         sites.forEach(entity -> {
             IndexingTask task = new IndexingTask(
@@ -53,9 +69,30 @@ public class IndexingServiceImpl implements IndexingService {
         tasks.forEach(IndexingTask::join);
     }
 
-    private void clearData() {
-        //добавить очистку по сайтам в index, lemma
-        pageService.clearAll();
-        websiteService.clearAll();
+    public void parseOnePage(String url, Site site) {
+        SiteEntity siteEntity = websiteService.getSite(site);
+        if (siteEntity == null) {
+            siteEntity = websiteService.createSite(site);
+            parseNewPage(url, siteEntity);
+        } else {
+            parseOldPage(url, siteEntity);
+        }
+    }
+
+    private void parseNewPage(String url, SiteEntity siteEntity) {
+         ParsingTask parsingTask = new ParsingTask(
+                 url, new PageManager(siteEntity, jsoupService, pageService, textService));
+         parsingTask.parse();
+    }
+
+    private void parseOldPage(String url, SiteEntity siteEntity) {
+        String path = textService.path(url, siteEntity.getUrl());
+        PageEntity pageEntity = pageService.getPage(siteEntity, path);
+        if (pageEntity == null) {
+            parseNewPage(url, siteEntity);
+        } else {
+            pageService.removePage(pageEntity);
+            parseNewPage(url, siteEntity);
+        }
     }
 }

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Entity
 @Builder
@@ -29,4 +31,7 @@ public class PageEntity {
 
     @Column(name = "content")
     private String content;
+
+    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<IndexEntity> indexes;
 }

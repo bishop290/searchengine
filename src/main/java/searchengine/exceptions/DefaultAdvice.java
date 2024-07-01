@@ -17,4 +17,9 @@ public class DefaultAdvice {
     public ResponseEntity<IndexingResponseError> handleIndexingIsNotRunningException(IndexingIsNotRunningException e) {
         return new ResponseEntity<>(new IndexingResponseError(false, e.getMessage()), HttpStatus.OK);
     }
+
+    @ExceptionHandler(PageDoesNotBelongToTheListedSites.class)
+    public ResponseEntity<IndexingResponseError> handlePageDoesNotBelongToTheListedSites(PageDoesNotBelongToTheListedSites e) {
+        return new ResponseEntity<>(new IndexingResponseError(false, e.getMessage()), HttpStatus.OK);
+    }
 }

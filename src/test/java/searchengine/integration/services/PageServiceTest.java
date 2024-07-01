@@ -6,18 +6,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
+import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.PageService;
-import searchengine.model.SiteEntity;
-import searchengine.model.Status;
 
 import java.sql.Timestamp;
 
@@ -33,7 +31,7 @@ class PageServiceTest extends TestContainer {
     private final LemmaRepository lemmaRepository;
     private final PageRepository pageRepository;
     private final IndexRepository indexRepository;
-    private final JdbcTemplate jdbc;
+    private final NamedParameterJdbcTemplate jdbc;
     private PageService manager;
 
     private final EntityManager entityManager;
@@ -78,4 +76,54 @@ class PageServiceTest extends TestContainer {
         assertEquals(lastError, savedSite.getLastError());
         assertNotNull(savedSite.getStatusTime());
     }
+
+    @Test
+    @DisplayName("Delete Page")
+    void testDeletePage() {
+        PageEntity page = PageEntity.builder()
+                .site(site)
+                .path(path)
+                .code(200)
+                .content("Hello world").build();
+        DatabaseWorker.saveToDb(page, pageRepository, entityManager);
+
+        int frequency = 10;
+        LemmaEntity lemma = LemmaEntity.builder()
+                .site(site)
+                .lemma("ягуар")
+                .frequency(frequency)
+                .build();
+        DatabaseWorker.saveToDb(lemma, lemmaRepository, entityManager);
+
+        LemmaEntity lemma2 = LemmaEntity.builder()
+                .site(site)
+                .lemma("ягуар")
+                .frequency(1)
+                .build();
+        DatabaseWorker.saveToDb(lemma2, lemmaRepository, entityManager);
+
+        float rank = 0.1f;
+        IndexEntity index = IndexEntity.builder()
+                .page(page)
+                .lemma(lemma)
+                .rank(rank).build();
+        DatabaseWorker.saveToDb(index, indexRepository, entityManager);
+
+        IndexEntity index2 = IndexEntity.builder()
+                .page(page)
+                .lemma(lemma2)
+                .rank(rank).build();
+        DatabaseWorker.saveToDb(index2, indexRepository, entityManager);
+
+        PageEntity newPage = pageRepository.findBySiteAndPath(site, path);
+        manager.removePage(newPage);
+        assertEquals(1, DatabaseWorker.count("site", jdbc));
+        assertEquals(1, DatabaseWorker.count("lemma", jdbc));
+        assertEquals(0, DatabaseWorker.count("page", jdbc));
+        assertEquals(0, DatabaseWorker.count("`index`", jdbc));
+
+        LemmaEntity siteLemma = DatabaseWorker.get(LemmaEntity.class, jdbc);
+        assertEquals(frequency - 1, siteLemma.getFrequency());
+    }
+
 }

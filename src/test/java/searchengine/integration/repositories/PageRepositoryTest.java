@@ -63,4 +63,31 @@ class PageRepositoryTest extends TestContainer {
         assertEquals(savedPage.getCode(), code);
         assertEquals(savedPage.getContent(), content);
     }
+
+    @Test
+    @DisplayName("Find page by path")
+    public void testFindByPath() {
+        SiteEntity site2 = SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("This is last error")
+                .url(siteUrl + "kkk")
+                .name("Google").build();
+
+        DatabaseWorker.saveToDb(site, siteRepository, entityManager);
+        DatabaseWorker.saveToDb(site2, siteRepository, entityManager);
+        PageEntity page1 = PageEntity.builder()
+                .site(site).path(path).code(code).content(content).build();
+        PageEntity page2 = PageEntity.builder()
+                .site(site).path(path + "helloKitty").code(code).content(content).build();
+        PageEntity page3 = PageEntity.builder()
+                .site(site2).path(path).code(code).content(content).build();
+
+        DatabaseWorker.saveToDb(page1, pageRepository, entityManager);
+        DatabaseWorker.saveToDb(page2, pageRepository, entityManager);
+        DatabaseWorker.saveToDb(page3, pageRepository, entityManager);
+
+        PageEntity resultPage = pageRepository.findBySiteAndPath(site, path);
+        assertEquals(resultPage.getPath(), path);
+    }
 }

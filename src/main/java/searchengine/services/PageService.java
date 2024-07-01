@@ -2,6 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class PageService {
     private final SiteRepository siteRepository;
@@ -29,8 +31,32 @@ public class PageService {
         lemmaRepository.saveAllAndFlush(lemmas);
     }
 
+    public synchronized PageEntity getPage(SiteEntity site, String path) {
+        return pageRepository.findBySiteAndPath(site, path);
+    }
+
     public synchronized void savePage(PageEntity page) {
         pageRepository.saveAndFlush(page);
+    }
+
+    public synchronized void removePage(PageEntity page) {
+        List<LemmaEntity> lemmasForSave = new ArrayList<>();
+        List<LemmaEntity> lemmasForRemove = new ArrayList<>();
+        for (IndexEntity index : page.getIndexes()) {
+            LemmaEntity lemma = index.getLemma();
+            int newFrequency = lemma.getFrequency() - 1;
+            if (newFrequency < 1) {
+                lemmasForRemove.add(lemma);
+            } else {
+                lemma.setFrequency(newFrequency);
+                lemmasForSave.add(lemma);
+            }
+        }
+        lemmaRepository.deleteAll(lemmasForRemove);
+        lemmaRepository.saveAll(lemmasForSave);
+        lemmaRepository.flush();
+        pageRepository.delete(page);
+        pageRepository.flush();
     }
 
     public synchronized void saveIndexes(List<IndexEntity> indexes) {
@@ -42,9 +68,5 @@ public class PageService {
         site.setStatus(status);
         site.setLastError(lastError);
         siteRepository.saveAndFlush(site);
-    }
-
-    public synchronized void clearAll() {
-        pageRepository.deleteAllInBatch();
     }
 }

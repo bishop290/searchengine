@@ -8,9 +8,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
-import searchengine.model.Status;
+import searchengine.model.*;
+import searchengine.repositories.IndexRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
@@ -27,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SiteRepositoryTest extends TestContainer {
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
+    private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
     private final EntityManager entityManager;
     private final NamedParameterJdbcTemplate jdbc;
 
@@ -57,7 +59,7 @@ class SiteRepositoryTest extends TestContainer {
     }
 
     @Test
-    @DisplayName("Delete all sites together with pages from the table \"site\"")
+    @DisplayName("Remove the site with all dependencies")
     public void testDeleteAll() {
         SiteEntity site = SiteEntity.builder()
                 .status(Status.INDEXING)
@@ -73,14 +75,67 @@ class SiteRepositoryTest extends TestContainer {
                 .site(site).path("www.google.com/cat-care")
                 .code(500).content("Привет мир!").build();
 
+        LemmaEntity lemma = LemmaEntity.builder()
+                .site(site)
+                .lemma("lemma")
+                .frequency(1)
+                .build();
+
+        IndexEntity index = IndexEntity.builder()
+                .lemma(lemma)
+                .page(firstPage)
+                .rank(3)
+                .build();
+
         DatabaseWorker.saveToDb(site, siteRepository, entityManager);
         DatabaseWorker.saveToDb(firstPage, pageRepository, entityManager);
         DatabaseWorker.saveToDb(secondPage, pageRepository, entityManager);
+        DatabaseWorker.saveToDb(lemma, lemmaRepository, entityManager);
+        DatabaseWorker.saveToDb(index, indexRepository, entityManager);
 
-        pageRepository.deleteAllInBatch();
-        siteRepository.deleteAllInBatch();
+        List<SiteEntity> entities = new ArrayList<>();
+        entities.add(site);
+
+        siteRepository.deleteAll(entities);
+        siteRepository.flush();
 
         assertEquals(0, DatabaseWorker.count("page", jdbc));
+        assertEquals(0, DatabaseWorker.count("lemma", jdbc));
+        assertEquals(0, DatabaseWorker.count("`index`", jdbc));
         assertEquals(0, DatabaseWorker.count("site", jdbc));
+
+        siteRepository.save(site);
+        assertEquals(1, DatabaseWorker.count("site", jdbc));
+        assertEquals(0, DatabaseWorker.count("page", jdbc));
+        assertEquals(0, DatabaseWorker.count("lemma", jdbc));
+        assertEquals(0, DatabaseWorker.count("`index`", jdbc));
     }
+
+    @Test
+    @DisplayName("Find sites by urls")
+    public void testFindSitesByUrl() {
+        int count = 10;
+        int result = 3;
+        List<String> urls = new ArrayList<>();
+        urls.add("www.google.com5");
+        urls.add("www.google.com6");
+        urls.add("www.google.com7");
+        urls.add("www.google.com256");
+
+        for (int i = 0; i < count; i++) {
+            SiteEntity site = SiteEntity.builder()
+                    .status(Status.INDEXING)
+                    .statusTime(new Timestamp(System.currentTimeMillis()))
+                    .lastError("This is last error")
+                    .url("www.google.com" + i)
+                    .name("Google")
+                    .build();
+            DatabaseWorker.saveToDb(site, siteRepository, entityManager);
+        }
+
+        List<SiteEntity> sites = siteRepository.findByUrlIn(urls);
+        assertEquals(result, sites.size());
+        System.out.println();
+    }
+
 }
