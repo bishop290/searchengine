@@ -123,7 +123,7 @@ class WebsiteServiceTest extends TestContainer {
                 .url(site.getUrl())
                 .name("google")
                 .build();
-        DatabaseWorker.saveToDb(siteEntity, siteRepository, entityManager);
+        DatabaseWorker.saveAndDetach(siteEntity, siteRepository, entityManager);
         assertEquals(resultName, service.getSite(site).getName());
         assertNull(service.getSite(site2));
 

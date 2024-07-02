@@ -1,11 +1,9 @@
 package searchengine.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.indexing.IndexingResponse;
-import searchengine.dto.indexing.UrlRequest;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.services.IndexingService;
 import searchengine.services.StatisticsService;
@@ -25,17 +23,16 @@ public class ApiController {
 
     @GetMapping("/startIndexing")
     public ResponseEntity<IndexingResponse> startIndexing() {
-        return new ResponseEntity<>(indexingService.start(), HttpStatus.OK);
+        return ResponseEntity.ok(indexingService.start());
     }
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<IndexingResponse> stopIndexing() {
-        return new ResponseEntity<>(indexingService.stop(), HttpStatus.OK);
+        return ResponseEntity.ok(indexingService.stop());
     }
 
-    @PostMapping("/indexPage")
-    public ResponseEntity<IndexingResponse> indexPage(@RequestBody UrlRequest urlRequest) {
-        return new ResponseEntity<>(
-                indexingService.startOnePage(urlRequest.url()), HttpStatus.OK);
+    @PostMapping(value = "/indexPage", produces = "application/x-www-form-urlencoded;charset=UTF-8")
+    public ResponseEntity<IndexingResponse> indexPage(@RequestBody String url) {
+        return ResponseEntity.ok(indexingService.startOnePage(url));
     }
 }

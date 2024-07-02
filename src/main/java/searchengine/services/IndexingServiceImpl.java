@@ -2,7 +2,6 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.Site;
 import searchengine.dto.indexing.IndexingResponse;
 import searchengine.exceptions.IndexingIsAlreadyRunningException;
@@ -14,11 +13,11 @@ import searchengine.model.SiteEntity;
 import searchengine.tasks.IndexingTask;
 import searchengine.tasks.ParsingTask;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService {
     private final WebsiteService websiteService;

@@ -48,7 +48,7 @@ class SiteRepositoryTest extends TestContainer {
                 .url(url)
                 .name(name).build();
 
-        DatabaseWorker.saveToDb(site, siteRepository, entityManager);
+        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
         SiteEntity savedSite = DatabaseWorker.get(SiteEntity.class, jdbc);
 
         assertEquals(savedSite.getStatus(), Status.INDEXING);
@@ -87,11 +87,11 @@ class SiteRepositoryTest extends TestContainer {
                 .rank(3)
                 .build();
 
-        DatabaseWorker.saveToDb(site, siteRepository, entityManager);
-        DatabaseWorker.saveToDb(firstPage, pageRepository, entityManager);
-        DatabaseWorker.saveToDb(secondPage, pageRepository, entityManager);
-        DatabaseWorker.saveToDb(lemma, lemmaRepository, entityManager);
-        DatabaseWorker.saveToDb(index, indexRepository, entityManager);
+        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
+        DatabaseWorker.saveAndDetach(firstPage, pageRepository, entityManager);
+        DatabaseWorker.saveAndDetach(secondPage, pageRepository, entityManager);
+        DatabaseWorker.saveAndDetach(lemma, lemmaRepository, entityManager);
+        DatabaseWorker.saveAndDetach(index, indexRepository, entityManager);
 
         List<SiteEntity> entities = new ArrayList<>();
         entities.add(site);
@@ -130,7 +130,7 @@ class SiteRepositoryTest extends TestContainer {
                     .url("www.google.com" + i)
                     .name("Google")
                     .build();
-            DatabaseWorker.saveToDb(site, siteRepository, entityManager);
+            DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
         }
 
         List<SiteEntity> sites = siteRepository.findByUrlIn(urls);

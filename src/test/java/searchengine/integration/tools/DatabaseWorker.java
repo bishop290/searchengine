@@ -13,6 +13,11 @@ public class DatabaseWorker {
     public static <T, S> void saveToDb(T entity, CrudRepository<T, S> repository, EntityManager manager) {
         repository.save(entity);
         manager.flush();
+    }
+
+    public static <T, S> void saveAndDetach(T entity, CrudRepository<T, S> repository, EntityManager manager) {
+        repository.save(entity);
+        manager.flush();
         manager.detach(entity);
     }
 

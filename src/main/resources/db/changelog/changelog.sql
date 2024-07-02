@@ -39,3 +39,10 @@ create table `index` (`id` int not null auto_increment,
 
 --changeset Grigorii_Kuznetsov:6
 create index `idx_lemma` ON `lemma` (`lemma`(20));
+
+--changeset Grigorii_Kuznetsov:7
+create view site_statistics as
+select id, url, name, status, status_time, last_error as error,
+       (select count(*) from page where site_id = site.id) as pages,
+       (select count(*) from lemma where site_id = site.id) as lemmas
+from site;

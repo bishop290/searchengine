@@ -17,7 +17,6 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.SiteRepository;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,13 +46,6 @@ class LemmaRepositoryTest extends TestContainer {
         code = 404;
         content = "Hello world!";
         siteUrl = "www.google.com";
-
-        site = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url(siteUrl)
-                .name("Google").build();
     }
 
     @Test
@@ -62,7 +54,13 @@ class LemmaRepositoryTest extends TestContainer {
         String lemma = "Это лемма";
         Integer freq = 10;
 
-        DatabaseWorker.saveToDb(site, siteRepository, entityManager);
+        site = SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("This is last error")
+                .url(siteUrl)
+                .name("Google").build();
+        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
 
         LemmaEntity lemmaEntity = LemmaEntity.builder()
                 .site(site)
@@ -70,7 +68,7 @@ class LemmaRepositoryTest extends TestContainer {
                 .frequency(freq)
                 .build();
 
-        DatabaseWorker.saveToDb(lemmaEntity, repository, entityManager);
+        DatabaseWorker.saveAndDetach(lemmaEntity, repository, entityManager);
         LemmaEntity savedLemma = DatabaseWorker.get(LemmaEntity.class, jdbc);
 
         assertEquals(lemma, savedLemma.getLemma());
@@ -90,9 +88,16 @@ class LemmaRepositoryTest extends TestContainer {
         lemmaNames.add(lemma + "255");
         int numbersOfFindLemmas = 3;
 
-        DatabaseWorker.saveToDb(site, siteRepository, entityManager);
+        site = SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("This is last error")
+                .url(siteUrl)
+                .name("Google").build();
+
+        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
         for (int i = 0; i < numberOfLemmas; i++) {
-            DatabaseWorker.saveToDb(
+            DatabaseWorker.saveAndDetach(
                     LemmaEntity.builder()
                     .site(site)
                     .lemma(lemma + i)

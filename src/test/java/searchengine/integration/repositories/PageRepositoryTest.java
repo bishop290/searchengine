@@ -40,23 +40,22 @@ class PageRepositoryTest extends TestContainer {
         code = 404;
         content = "Hello world!";
         siteUrl = "www.google.com";
+    }
 
+    @Test
+    @DisplayName("Save \"Page\" entity to db")
+    public void testSaveToDb() {
         site = SiteEntity.builder()
                 .status(Status.INDEXING)
                 .statusTime(new Timestamp(System.currentTimeMillis()))
                 .lastError("This is last error")
                 .url(siteUrl)
                 .name("Google").build();
-    }
-
-    @Test
-    @DisplayName("Save \"Page\" entity to db")
-    public void testSaveToDb() {
-        DatabaseWorker.saveToDb(site, siteRepository, entityManager);
+        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
         PageEntity page = PageEntity.builder()
                 .site(site).path(path).code(code).content(content).build();
 
-        DatabaseWorker.saveToDb(page, pageRepository, entityManager);
+        DatabaseWorker.saveAndDetach(page, pageRepository, entityManager);
         PageEntity savedPage = DatabaseWorker.get(PageEntity.class, jdbc);
 
         assertEquals(savedPage.getPath(), path);
@@ -65,8 +64,15 @@ class PageRepositoryTest extends TestContainer {
     }
 
     @Test
-    @DisplayName("Find page by path")
-    public void testFindByPath() {
+    @DisplayName("Find page by site and path")
+    public void testFindBySiteAndPath() {
+        site = SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("This is last error")
+                .url(siteUrl)
+                .name("Google").build();
+
         SiteEntity site2 = SiteEntity.builder()
                 .status(Status.INDEXING)
                 .statusTime(new Timestamp(System.currentTimeMillis()))
@@ -74,8 +80,9 @@ class PageRepositoryTest extends TestContainer {
                 .url(siteUrl + "kkk")
                 .name("Google").build();
 
-        DatabaseWorker.saveToDb(site, siteRepository, entityManager);
-        DatabaseWorker.saveToDb(site2, siteRepository, entityManager);
+        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
+        DatabaseWorker.saveAndDetach(site2, siteRepository, entityManager);
+
         PageEntity page1 = PageEntity.builder()
                 .site(site).path(path).code(code).content(content).build();
         PageEntity page2 = PageEntity.builder()
@@ -83,9 +90,10 @@ class PageRepositoryTest extends TestContainer {
         PageEntity page3 = PageEntity.builder()
                 .site(site2).path(path).code(code).content(content).build();
 
-        DatabaseWorker.saveToDb(page1, pageRepository, entityManager);
-        DatabaseWorker.saveToDb(page2, pageRepository, entityManager);
-        DatabaseWorker.saveToDb(page3, pageRepository, entityManager);
+        DatabaseWorker.saveAndDetach(page1, pageRepository, entityManager);
+        DatabaseWorker.saveAndDetach(page2, pageRepository, entityManager);
+        DatabaseWorker.saveAndDetach(page3, pageRepository, entityManager);
+
 
         PageEntity resultPage = pageRepository.findBySiteAndPath(site, path);
         assertEquals(resultPage.getPath(), path);

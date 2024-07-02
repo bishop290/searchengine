@@ -2,7 +2,6 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class PageService {
     private final SiteRepository siteRepository;
@@ -40,9 +38,13 @@ public class PageService {
     }
 
     public synchronized void removePage(PageEntity page) {
+        List<IndexEntity> indexes = indexRepository.findByPage(page);
+        if (indexes == null) {
+            return;
+        }
         List<LemmaEntity> lemmasForSave = new ArrayList<>();
         List<LemmaEntity> lemmasForRemove = new ArrayList<>();
-        for (IndexEntity index : page.getIndexes()) {
+        for (IndexEntity index : indexes) {
             LemmaEntity lemma = index.getLemma();
             int newFrequency = lemma.getFrequency() - 1;
             if (newFrequency < 1) {

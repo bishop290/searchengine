@@ -48,27 +48,24 @@ class PageServiceTest extends TestContainer {
         code = 404;
         content = "Hello world!";
         siteUrl = "www.google.com";
-
-        site = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url(siteUrl)
-                .name("Google").build();
-
     }
 
     @BeforeEach
     public void init() {
         manager = new PageService(siteRepository, lemmaRepository, pageRepository, indexRepository);
-        DatabaseWorker.saveToDb(site, siteRepository, entityManager);
     }
 
     @Test
     @DisplayName("Site update")
     void testSiteUpdate() {
         String lastError = "";
-
+        site = SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("This is last error")
+                .url(siteUrl)
+                .name("Google").build();
+        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
         manager.siteUpdate(site, Status.INDEXED, lastError);
         SiteEntity savedSite = DatabaseWorker.get(SiteEntity.class, namedJdbc);
 
@@ -80,12 +77,20 @@ class PageServiceTest extends TestContainer {
     @Test
     @DisplayName("Delete Page")
     void testDeletePage() {
+        SiteEntity site = SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("This is last error")
+                .url(siteUrl)
+                .name("Google").build();
+        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
+
         PageEntity page = PageEntity.builder()
                 .site(site)
                 .path(path)
                 .code(200)
                 .content("Hello world").build();
-        DatabaseWorker.saveToDb(page, pageRepository, entityManager);
+        DatabaseWorker.saveAndDetach(page, pageRepository, entityManager);
 
         int frequency = 10;
         LemmaEntity lemma = LemmaEntity.builder()
@@ -93,27 +98,27 @@ class PageServiceTest extends TestContainer {
                 .lemma("ягуар")
                 .frequency(frequency)
                 .build();
-        DatabaseWorker.saveToDb(lemma, lemmaRepository, entityManager);
+        DatabaseWorker.saveAndDetach(lemma, lemmaRepository, entityManager);
 
         LemmaEntity lemma2 = LemmaEntity.builder()
                 .site(site)
                 .lemma("ягуар")
                 .frequency(1)
                 .build();
-        DatabaseWorker.saveToDb(lemma2, lemmaRepository, entityManager);
+        DatabaseWorker.saveAndDetach(lemma2, lemmaRepository, entityManager);
 
         float rank = 0.1f;
         IndexEntity index = IndexEntity.builder()
                 .page(page)
                 .lemma(lemma)
                 .rank(rank).build();
-        DatabaseWorker.saveToDb(index, indexRepository, entityManager);
+        DatabaseWorker.saveAndDetach(index, indexRepository, entityManager);
 
         IndexEntity index2 = IndexEntity.builder()
                 .page(page)
                 .lemma(lemma2)
                 .rank(rank).build();
-        DatabaseWorker.saveToDb(index2, indexRepository, entityManager);
+        DatabaseWorker.saveAndDetach(index2, indexRepository, entityManager);
 
         PageEntity newPage = pageRepository.findBySiteAndPath(site, path);
         manager.removePage(newPage);

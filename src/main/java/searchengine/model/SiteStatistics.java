@@ -7,32 +7,36 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
-import java.util.List;
 
 @Data
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "site")
-public class SiteEntity {
+@Table(name = "site_statistics")
+public class SiteStatistics {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
-
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private Status status;
-
-    @Column(name = "status_time")
-    private Timestamp statusTime;
-
-    @Column(name = "last_error")
-    private String lastError;
 
     @Column(name = "url")
     private String url;
 
     @Column(name = "name")
     private String name;
+
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "status_time")
+    private Timestamp statusTime;
+
+    @Column(name = "error")
+    private String error;
+
+    @Column(name = "pages")
+    private Integer pages;
+
+    @Column(name = "lemmas")
+    private Integer lemmas;
 }
