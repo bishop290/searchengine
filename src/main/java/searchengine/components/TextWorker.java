@@ -1,15 +1,15 @@
-package searchengine.services;
+package searchengine.components;
 
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.WrongCharaterException;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.*;
 
-@Service
-public class TextService {
+@Component
+public class TextWorker {
     private static final Set<String> EXCEPTIONS = new HashSet<>(
             Arrays.asList("СОЮЗ", "МЕЖД", "ПРЕДЛ", "ЧАСТ"));
     private static LuceneMorphology rusMorphology;

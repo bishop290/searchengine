@@ -1,4 +1,4 @@
-package searchengine.services;
+package searchengine.components;
 
 import lombok.Getter;
 import org.jsoup.Connection;
@@ -7,7 +7,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import searchengine.config.JsoupSettings;
 import searchengine.managers.JsoupData;
 
@@ -18,14 +18,14 @@ import java.util.List;
 import java.util.Set;
 
 @Getter
-@Service
-public class JsoupService {
+@Component
+public class JsoupWorker {
     private final static int MINIMAL_DELAY = 500;
     private final JsoupSettings jsoupSettings;
     private final Connection connection;
     private final int delay;
 
-    public JsoupService(JsoupSettings jsoupSettings) {
+    public JsoupWorker(JsoupSettings jsoupSettings) {
         this.jsoupSettings = jsoupSettings;
         this.connection = Jsoup.newSession()
                 .userAgent(jsoupSettings.getAgent())

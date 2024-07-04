@@ -1,4 +1,4 @@
-package searchengine.integration.services;
+package searchengine.integration.components;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import searchengine.integration.tools.TestContainer;
 import searchengine.model.SiteEntity;
 import searchengine.model.Status;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.WebsiteService;
+import searchengine.components.SiteToDbWorker;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -25,12 +25,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @IntegrationTest
 @RequiredArgsConstructor
-@DisplayName("\"WebsiteService\" integration tests")
-class WebsiteServiceTest extends TestContainer {
+@DisplayName("\"SiteToDbWorker\" integration tests")
+class SiteToDbWorkerTest extends TestContainer {
     private final SiteRepository siteRepository;
     private final NamedParameterJdbcTemplate jdbc;
     private static SitesList sitesList;
-    private WebsiteService service;
+    private SiteToDbWorker service;
     private final EntityManager entityManager;
 
     @BeforeAll
@@ -46,7 +46,7 @@ class WebsiteServiceTest extends TestContainer {
 
     @BeforeEach
     public void init() {
-        service = new WebsiteService(siteRepository, sitesList);
+        service = new SiteToDbWorker(siteRepository, sitesList);
     }
 
     @Test
@@ -88,7 +88,7 @@ class WebsiteServiceTest extends TestContainer {
         testSites.add(Site.builder().url("www.duckduckgo.com/").build());
         SitesList sites = new SitesList();
         sites.setSites(testSites);
-        service = new WebsiteService(siteRepository, sites);
+        service = new SiteToDbWorker(siteRepository, sites);
 
         List<String> possibleUrls = service.getPossibleUrls();
         assertEquals(result, possibleUrls.size());
@@ -104,7 +104,7 @@ class WebsiteServiceTest extends TestContainer {
         testSites.add(Site.builder().url("https://duckduckgo.com/").build());
         SitesList sites = new SitesList();
         sites.setSites(testSites);
-        service = new WebsiteService(siteRepository, sites);
+        service = new SiteToDbWorker(siteRepository, sites);
 
         assertEquals(testSites.get(1).getUrl(), service.findDomain(url1).getUrl());
         assertNull(service.findDomain(url2));

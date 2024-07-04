@@ -2,33 +2,36 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import searchengine.components.JsoupWorker;
+import searchengine.components.PageToDbWorker;
+import searchengine.components.SiteToDbWorker;
+import searchengine.components.TextWorker;
 import searchengine.config.Site;
 import searchengine.dto.indexing.IndexingResponse;
 import searchengine.exceptions.IndexingIsAlreadyRunningException;
 import searchengine.exceptions.IndexingIsNotRunningException;
 import searchengine.exceptions.PageDoesNotBelongToTheListedSites;
-import searchengine.managers.PageManager;
+import searchengine.managers.MainPageManager;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
-import searchengine.tasks.IndexingTask;
-import searchengine.tasks.ParsingTask;
+import searchengine.tasks.SiteIndexingTask;
+import searchengine.tasks.PageParsingTask;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService {
-    private final WebsiteService websiteService;
-    private final PageService pageService;
-    private final JsoupService jsoupService;
-    private final TextService textService;
-    private final List<IndexingTask> tasks = new ArrayList<>();
+    private final SiteToDbWorker websiteService;
+    private final PageToDbWorker pageService;
+    private final JsoupWorker jsoupService;
+    private final TextWorker textService;
+    private final List<SiteIndexingTask> tasks = new ArrayList<>();
 
     @Override
     public IndexingResponse start() {
-        if (tasks.stream().anyMatch(IndexingTask::isRunning)) {
+        if (tasks.stream().anyMatch(SiteIndexingTask::isRunning)) {
             throw new IndexingIsAlreadyRunningException();
         }
         websiteService.clearAllByUrls();
@@ -41,8 +44,8 @@ public class IndexingServiceImpl implements IndexingService {
 
     @Override
     public IndexingResponse stop() {
-        if (tasks.stream().anyMatch(IndexingTask::isRunning)) {
-            tasks.forEach(IndexingTask::stop);
+        if (tasks.stream().anyMatch(SiteIndexingTask::isRunning)) {
+            tasks.forEach(SiteIndexingTask::stop);
             return new IndexingResponse(true);
         }
         throw new IndexingIsNotRunningException();
@@ -60,12 +63,11 @@ public class IndexingServiceImpl implements IndexingService {
 
     private void createTasks(List<SiteEntity> sites) {
         sites.forEach(entity -> {
-            IndexingTask task = new IndexingTask(
-                    new PageManager(entity, jsoupService, pageService, textService));
+            SiteIndexingTask task = new SiteIndexingTask(
+                    new MainPageManager(entity, jsoupService, pageService, textService));
             task.start();
             tasks.add(task);
         });
-        tasks.forEach(IndexingTask::join);
     }
 
     public void parseOnePage(String url, Site site) {
@@ -79,9 +81,12 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     private void parseNewPage(String url, SiteEntity siteEntity) {
-         ParsingTask parsingTask = new ParsingTask(
-                 url, new PageManager(siteEntity, jsoupService, pageService, textService));
-         parsingTask.parse();
+        MainPageManager manager = new MainPageManager(siteEntity, jsoupService, pageService, textService);
+        PageParsingTask parsingTask = new PageParsingTask(url, manager);
+        parsingTask.parse();
+        parsingTask.getLemmas();
+        parsingTask.saveData();
+        manager.closeCache();
     }
 
     private void parseOldPage(String url, SiteEntity siteEntity) {

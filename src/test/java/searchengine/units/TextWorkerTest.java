@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import searchengine.services.TextService;
+import searchengine.components.TextWorker;
 
 import java.io.IOException;
 import java.util.Map;
@@ -15,8 +15,8 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@DisplayName("\"TextManager\" unit tests")
-class TextManagerTest {
+@DisplayName("\"TextWorker\" unit tests")
+class TextWorkerTest {
     String text = """
             Повторное появление леопарда в Осетии позволяет предположить,
             что леопард постоянно обитает в некоторых районах Северного
@@ -35,11 +35,11 @@ class TextManagerTest {
                 <слон>
             </footer>
             """;
-    private TextService manager;
+    private TextWorker manager;
 
     @BeforeEach
     void init()  {
-        manager = new TextService();
+        manager = new TextWorker();
     }
 
     public static Stream<Arguments> urlProvider() {

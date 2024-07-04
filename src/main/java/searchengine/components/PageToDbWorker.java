@@ -1,25 +1,30 @@
-package searchengine.services;
+package searchengine.components;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class PageService {
+public class PageToDbWorker {
     private final SiteRepository siteRepository;
     private final LemmaRepository lemmaRepository;
     private final PageRepository pageRepository;
     private final IndexRepository indexRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public synchronized List<LemmaEntity> getLemmas(SiteEntity site, Set<String> names) {
         return lemmaRepository.findBySiteAndLemmaIn(site, names);
@@ -70,5 +75,34 @@ public class PageService {
         site.setStatus(status);
         site.setLastError(lastError);
         siteRepository.saveAndFlush(site);
+    }
+
+    public synchronized int[] updateLemmas(List<LemmaEntity> lemmas) {
+        return jdbcTemplate.batchUpdate(
+                "update `lemma` set `frequency` = ? where `id` = ?",
+                new BatchPreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setInt(1, lemmas.get(i).getFrequency());
+                        ps.setInt(2, lemmas.get(i).getId());
+                    }
+                    public int getBatchSize() {
+                        return lemmas.size();
+                    }
+                });
+    }
+
+    public synchronized int[] insertIndexes(List<IndexEntity> indexes) {
+        return jdbcTemplate.batchUpdate(
+                "insert into `index` (`page_id`, `lemma_id`, `rank`) values(?,?,?)",
+                new BatchPreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setInt(1, indexes.get(i).getPage().getId());
+                        ps.setInt(2, indexes.get(i).getLemma().getId());
+                        ps.setFloat(3, indexes.get(i).getRank());
+                    }
+                    public int getBatchSize() {
+                        return indexes.size();
+                    }
+                });
     }
 }

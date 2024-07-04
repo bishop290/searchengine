@@ -9,13 +9,14 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
-import searchengine.model.Status;
+import searchengine.model.*;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,6 +27,7 @@ class PageRepositoryTest extends TestContainer {
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final EntityManager entityManager;
+    private final LemmaRepository lemmaRepository;
     private final NamedParameterJdbcTemplate jdbc;
 
     private static String path;

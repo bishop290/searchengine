@@ -1,7 +1,7 @@
-package searchengine.services;
+package searchengine.components;
 
 import lombok.Getter;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.model.SiteEntity;
@@ -13,13 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Service
-public class WebsiteService {
+@Component
+public class SiteToDbWorker {
     private final SiteRepository siteRepository;
     private final SitesList sites;
     private final List<SiteEntity> siteEntities;
 
-    public WebsiteService(SiteRepository siteRepository, SitesList sites) {
+    public SiteToDbWorker(SiteRepository siteRepository, SitesList sites) {
         this.siteRepository = siteRepository;
         this.sites = sites;
         this.siteEntities = new ArrayList<>();

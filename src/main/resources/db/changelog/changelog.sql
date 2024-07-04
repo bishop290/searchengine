@@ -15,8 +15,7 @@ create table `page` (`id` int not null auto_increment,
                      `path` text not null,
                      `code` int not null,
                      `content` mediumtext not null,
-                     primary key (`id`),
-                     foreign key (`site_id`) references site(`id`) on delete cascade);
+                     primary key (`id`));
 
 --changeset Grigorii_Kuznetsov:3
 create index `idx_path` ON `page` (`path`(40));
@@ -26,23 +25,18 @@ create table `lemma` (`id` int not null auto_increment,
                       `site_id` int not null,
                       `lemma` varchar(255) not null,
                       `frequency` int not null,
-                      primary key (`id`),
-                      foreign key (`site_id`) references site(`id`) on delete cascade);
+                      primary key (`id`));
 
 --changeset Grigorii_Kuznetsov:5
 create table `index` (`id` int not null auto_increment,
                       `page_id` int not null,
                       `lemma_id` int not null,
                       `rank` float not null,
-                      primary key (`id`),
-                      foreign key (`page_id`) references page(`id`) on delete cascade);
+                      primary key (`id`));
 
 --changeset Grigorii_Kuznetsov:6
-create index `idx_lemma` ON `lemma` (`lemma`(20));
-
---changeset Grigorii_Kuznetsov:7
-create view site_statistics as
-select id, url, name, status, status_time, last_error as error,
-       (select count(*) from page where site_id = site.id) as pages,
-       (select count(*) from lemma where site_id = site.id) as lemmas
-from site;
+create view `site_statistics` as
+select `id`, `url`, `name`, `status`, `status_time`, `last_error` as `error`,
+       (select count(*) from `page` where `site_id` = `site`.`id`) as `pages`,
+       (select count(*) from `lemma` where `site_id` = `site`.`id`) as `lemmas`
+from `site`;
