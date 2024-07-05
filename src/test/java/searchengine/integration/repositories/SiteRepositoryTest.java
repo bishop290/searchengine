@@ -101,14 +101,14 @@ class SiteRepositoryTest extends TestContainer {
 
         assertEquals(0, DatabaseWorker.count("page", jdbc));
         assertEquals(0, DatabaseWorker.count("lemma", jdbc));
-        assertEquals(0, DatabaseWorker.count("`index`", jdbc));
+        assertEquals(0, DatabaseWorker.count("index", jdbc));
         assertEquals(0, DatabaseWorker.count("site", jdbc));
 
         siteRepository.save(site);
         assertEquals(1, DatabaseWorker.count("site", jdbc));
         assertEquals(0, DatabaseWorker.count("page", jdbc));
         assertEquals(0, DatabaseWorker.count("lemma", jdbc));
-        assertEquals(0, DatabaseWorker.count("`index`", jdbc));
+        assertEquals(0, DatabaseWorker.count("index", jdbc));
     }
 
     @Test

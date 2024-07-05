@@ -35,11 +35,11 @@ class TextWorkerTest {
                 <слон>
             </footer>
             """;
-    private TextWorker manager;
+    private TextWorker worker;
 
     @BeforeEach
     void init()  {
-        manager = new TextWorker();
+        worker = new TextWorker();
     }
 
     public static Stream<Arguments> urlProvider() {
@@ -57,8 +57,8 @@ class TextWorkerTest {
         int numberOfLeopards = 2;
         String word = "леопард";
 
-        manager.init();
-        Map<String, Integer> lemmas = manager.lemmas(text);
+        worker.init();
+        Map<String, Integer> lemmas = worker.lemmas(text);
 
         assertEquals(size, lemmas.size());
         assertEquals(numberOfLeopards, lemmas.get(word));
@@ -69,7 +69,7 @@ class TextWorkerTest {
     @MethodSource("urlProvider")
     void testCutUrl(String url, String expected) {
         String domain = "https://google.com";
-        assertEquals(expected, manager.path(url, domain));
+        assertEquals(expected, worker.path(url, domain));
     }
 
     @ParameterizedTest
@@ -77,6 +77,14 @@ class TextWorkerTest {
     @MethodSource("urlProvider")
     void testCutUrlSecondDomain(String url, String expected) {
         String domain = "https://google.com/";
-        assertEquals(expected, manager.path(url, domain));
+        assertEquals(expected, worker.path(url, domain));
+    }
+
+    @Test
+    @DisplayName("Remove HTML tags")
+    void testRemoveHtmlTags() {
+        String expected = "&copy;2024KonstantinShibkovСозданоприпомощиHugoТемаStack,дизайнJimmy";
+        String result = worker.removeHtmlTags(html).replaceAll("\\s+", "");
+        assertEquals(expected, result);
     }
 }

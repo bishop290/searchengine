@@ -22,12 +22,10 @@ public class StatisticsServiceImpl implements StatisticsService {
         List<SiteStatistics> statistics = siteStatisticsRepository.findAll();
         if (statistics == null) {
             // исключение может быть
-            return new StatisticsResponse();
+            return StatisticsResponse.builder().build();
         }
-        StatisticsResponse response = new StatisticsResponse();
-        response.setResult(true);
-        response.setStatistics(generateData(statistics));
-        return response;
+        return StatisticsResponse.builder().
+                result(true).statistics(generateData(statistics)).build();
     }
 
     private StatisticsData generateData(List<SiteStatistics> statistics) {

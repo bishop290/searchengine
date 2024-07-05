@@ -1,6 +1,5 @@
 package searchengine.managers;
 
-import lombok.RequiredArgsConstructor;
 import searchengine.components.JsoupWorker;
 import searchengine.components.PageToDbWorker;
 import searchengine.components.TextWorker;
@@ -79,7 +78,7 @@ public class MainPageManager {
     }
 
     public Map<String, Integer> createLemmas(JsoupData data) {
-        return textWorker.lemmas(data.document().body().text());
+        return textWorker.lemmas(data.document().text());
     }
 
     public List<String> links(JsoupData data) {
@@ -98,7 +97,7 @@ public class MainPageManager {
                 textWorker.path(data.url(), domain()),
                 siteEntity,
                 data.code(),
-                data.document().body().html());
+                data.document().html());
         dbWorker.savePage(page);
 
         List<LemmaEntity> lemmasFromDb = dbWorker.getLemmas(siteEntity, lemmas.keySet());

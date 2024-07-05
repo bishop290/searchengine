@@ -14,8 +14,8 @@ import searchengine.exceptions.PageDoesNotBelongToTheListedSites;
 import searchengine.managers.MainPageManager;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
-import searchengine.tasks.SiteIndexingTask;
 import searchengine.tasks.PageParsingTask;
+import searchengine.tasks.SiteIndexingTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +53,7 @@ public class IndexingServiceImpl implements IndexingService {
 
     @Override
     public IndexingResponse startOnePage(String url) {
+        url = textService.urlDecode(url);
         Site site = websiteService.findDomain(url);
         if (site == null) {
             throw new PageDoesNotBelongToTheListedSites();
@@ -70,7 +71,7 @@ public class IndexingServiceImpl implements IndexingService {
         });
     }
 
-    public void parseOnePage(String url, Site site) {
+    private void parseOnePage(String url, Site site) {
         SiteEntity siteEntity = websiteService.getSite(site);
         if (siteEntity == null) {
             siteEntity = websiteService.createSite(site);
@@ -83,10 +84,14 @@ public class IndexingServiceImpl implements IndexingService {
     private void parseNewPage(String url, SiteEntity siteEntity) {
         MainPageManager manager = new MainPageManager(siteEntity, jsoupService, pageService, textService);
         PageParsingTask parsingTask = new PageParsingTask(url, manager);
-        parsingTask.parse();
+        if (!parsingTask.parse()) {
+            return;
+        }
         parsingTask.getLemmas();
         parsingTask.saveData();
         manager.closeCache();
+        manager.statusIndexed();
+        manager.stop();
     }
 
     private void parseOldPage(String url, SiteEntity siteEntity) {

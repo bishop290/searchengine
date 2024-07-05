@@ -1,6 +1,7 @@
 package searchengine.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.indexing.IndexingResponse;
@@ -31,7 +32,7 @@ public class ApiController {
         return ResponseEntity.ok(indexingService.stop());
     }
 
-    @PostMapping(value = "/indexPage", produces = "application/x-www-form-urlencoded;charset=UTF-8")
+    @PostMapping(value = "/indexPage")
     public ResponseEntity<IndexingResponse> indexPage(@RequestBody String url) {
         return ResponseEntity.ok(indexingService.startOnePage(url));
     }

@@ -26,25 +26,26 @@ public class PageToDbWorker {
     private final IndexRepository indexRepository;
     private final JdbcTemplate jdbcTemplate;
 
-    public synchronized List<LemmaEntity> getLemmas(SiteEntity site, Set<String> names) {
+    public List<LemmaEntity> getLemmas(SiteEntity site, Set<String> names) {
         return lemmaRepository.findBySiteAndLemmaIn(site, names);
     }
 
-    public synchronized void saveLemmas(List<LemmaEntity> lemmas) {
+    public void saveLemmas(List<LemmaEntity> lemmas) {
         lemmaRepository.saveAllAndFlush(lemmas);
     }
 
-    public synchronized PageEntity getPage(SiteEntity site, String path) {
+    public PageEntity getPage(SiteEntity site, String path) {
         return pageRepository.findBySiteAndPath(site, path);
     }
 
-    public synchronized void savePage(PageEntity page) {
+    public void savePage(PageEntity page) {
         pageRepository.saveAndFlush(page);
     }
 
-    public synchronized void removePage(PageEntity page) {
+    public void removePage(PageEntity page) {
         List<IndexEntity> indexes = indexRepository.findByPage(page);
-        if (indexes == null) {
+        if (indexes == null || indexes.isEmpty()) {
+            deletePage(page);
             return;
         }
         List<LemmaEntity> lemmasForSave = new ArrayList<>();
@@ -59,25 +60,19 @@ public class PageToDbWorker {
                 lemmasForSave.add(lemma);
             }
         }
-        lemmaRepository.deleteAll(lemmasForRemove);
-        lemmaRepository.saveAll(lemmasForSave);
-        lemmaRepository.flush();
-        pageRepository.delete(page);
-        pageRepository.flush();
+        lemmaRepository.deleteAllInBatch(lemmasForRemove);
+        updateLemmas(lemmasForSave);
+        deletePage(page);
     }
 
-    public synchronized void saveIndexes(List<IndexEntity> indexes) {
-        indexRepository.saveAllAndFlush(indexes);
-    }
-
-    public synchronized void siteUpdate(SiteEntity site, Status status, String lastError) {
+    public void siteUpdate(SiteEntity site, Status status, String lastError) {
         site.setStatusTime(new Timestamp(System.currentTimeMillis()));
         site.setStatus(status);
         site.setLastError(lastError);
         siteRepository.saveAndFlush(site);
     }
 
-    public synchronized int[] updateLemmas(List<LemmaEntity> lemmas) {
+    public int[] updateLemmas(List<LemmaEntity> lemmas) {
         return jdbcTemplate.batchUpdate(
                 "update `lemma` set `frequency` = ? where `id` = ?",
                 new BatchPreparedStatementSetter() {
@@ -91,7 +86,7 @@ public class PageToDbWorker {
                 });
     }
 
-    public synchronized int[] insertIndexes(List<IndexEntity> indexes) {
+    public int[] insertIndexes(List<IndexEntity> indexes) {
         return jdbcTemplate.batchUpdate(
                 "insert into `index` (`page_id`, `lemma_id`, `rank`) values(?,?,?)",
                 new BatchPreparedStatementSetter() {
@@ -104,5 +99,10 @@ public class PageToDbWorker {
                         return indexes.size();
                     }
                 });
+    }
+
+    private void deletePage(PageEntity page) {
+        pageRepository.delete(page);
+        pageRepository.flush();
     }
 }

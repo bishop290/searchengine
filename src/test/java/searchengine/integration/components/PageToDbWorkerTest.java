@@ -126,11 +126,13 @@ class PageToDbWorkerTest {
         DatabaseWorker.saveAndDetach(index2, indexRepository, entityManager);
 
         PageEntity newPage = pageRepository.findBySiteAndPath(site, path);
+
         worker.removePage(newPage);
+
         assertEquals(1, DatabaseWorker.count("site", jdbc));
         assertEquals(1, DatabaseWorker.count("lemma", jdbc));
         assertEquals(0, DatabaseWorker.count("page", jdbc));
-        assertEquals(0, DatabaseWorker.count("`index`", jdbc));
+        assertEquals(0, DatabaseWorker.count("index", jdbc));
 
         LemmaEntity siteLemma = DatabaseWorker.get(LemmaEntity.class, jdbc);
         assertEquals(frequency - 1, siteLemma.getFrequency());

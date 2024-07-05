@@ -6,12 +6,14 @@ import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Component
 public class TextWorker {
-    private static final Set<String> EXCEPTIONS = new HashSet<>(
-            Arrays.asList("СОЮЗ", "МЕЖД", "ПРЕДЛ", "ЧАСТ"));
+    private static final List<String> EXCEPTIONS =
+            Arrays.asList("СОЮЗ", "МЕЖД", "ПРЕДЛ", "ЧАСТ");
     private static LuceneMorphology rusMorphology;
 
     public void init() throws IOException {
@@ -23,10 +25,9 @@ public class TextWorker {
 
     public Map<String, Integer> lemmas(String text) {
         HashMap<String, Integer> lemmas = new HashMap<>();
+        String[] words = splitText(text);
 
-        String[] words = text.split("\\s+");
         for (String word : words) {
-            word = word.replaceAll("[^А-Яа-я]+", "").toLowerCase(Locale.ROOT);
             if (isValidWord(word)) {
                 List<String> forms = rusMorphology.getNormalForms(word);
                 if (!forms.isEmpty()) {
@@ -46,26 +47,43 @@ public class TextWorker {
         }
     }
 
+    public String removeHtmlTags(String text) {
+        return text.replaceAll("(<([^>]+)>)", "");
+    }
+
+    public String urlDecode(String url) {
+        String useless = "url=";
+        String head = "https://";
+        url = url.replaceFirst(useless, "");
+        url = url.matches(head) ? url : head + url;
+        return URLDecoder.decode(url, StandardCharsets.UTF_8);
+    }
+
+    private String[] splitText(String text) {
+        return text.toLowerCase(Locale.ROOT)
+                .replaceAll("([^а-я\\s])", " ")
+                .trim()
+                .split("\\s+");
+    }
+
     private boolean isValidWord(String word) {
         if (word.isEmpty()) {
             return false;
         }
-
-        List<String> info;
+        List<String> forms;
         try {
-            info = rusMorphology.getMorphInfo(word);
+            forms = rusMorphology.getMorphInfo(word);
         } catch (WrongCharaterException e) {
             return false;
         }
-        if (info.isEmpty()) {
+        if (forms.isEmpty()) {
             return false;
         }
-
-        for (String data : info) {
-            String[] infoSubstrings = data.split(" ");
-            String type = infoSubstrings[infoSubstrings.length - 1].strip();
-            if (EXCEPTIONS.contains(type)) {
-                return false;
+        for (String form : forms) {
+            for (String exception : EXCEPTIONS) {
+                if (form.toUpperCase().contains(exception)) {
+                    return false;
+                }
             }
         }
         return true;
