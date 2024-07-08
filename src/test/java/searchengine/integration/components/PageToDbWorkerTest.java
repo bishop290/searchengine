@@ -28,8 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @IntegrationTest
 @RequiredArgsConstructor
 @DisplayName("\"PageToDbWorker\" integration tests")
-//class PageToDbWorkerTest extends TestContainer {
-class PageToDbWorkerTest {
+class PageToDbWorkerTest extends TestContainer {
     private final NamedParameterJdbcTemplate namedJdbc;
     private final SiteRepository siteRepository;
     private final LemmaRepository lemmaRepository;

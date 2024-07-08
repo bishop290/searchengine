@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import searchengine.components.PageToDbWorker;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
+import searchengine.integration.tools.TestContainer;
 import searchengine.managers.Cache;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
@@ -27,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @IntegrationTest
 @RequiredArgsConstructor
 @DisplayName("\"Cache\" unit test")
-class CacheTest {
+class CacheTest  extends TestContainer {
     private final PageToDbWorker dbWorker;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;

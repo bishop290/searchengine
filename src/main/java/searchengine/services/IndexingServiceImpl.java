@@ -34,7 +34,7 @@ public class IndexingServiceImpl implements IndexingService {
         if (tasks.stream().anyMatch(SiteIndexingTask::isRunning)) {
             throw new IndexingIsAlreadyRunningException();
         }
-        websiteService.clearAllByUrls();
+        websiteService.clearAll();
         websiteService.createEntities();
         websiteService.saveToDatabase();
         createTasks(websiteService.getSiteEntities());

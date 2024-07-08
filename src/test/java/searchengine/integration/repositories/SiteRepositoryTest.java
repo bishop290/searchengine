@@ -110,32 +110,4 @@ class SiteRepositoryTest extends TestContainer {
         assertEquals(0, DatabaseWorker.count("lemma", jdbc));
         assertEquals(0, DatabaseWorker.count("index", jdbc));
     }
-
-    @Test
-    @DisplayName("Find sites by urls")
-    public void testFindSitesByUrl() {
-        int count = 10;
-        int result = 3;
-        List<String> urls = new ArrayList<>();
-        urls.add("www.google.com5");
-        urls.add("www.google.com6");
-        urls.add("www.google.com7");
-        urls.add("www.google.com256");
-
-        for (int i = 0; i < count; i++) {
-            SiteEntity site = SiteEntity.builder()
-                    .status(Status.INDEXING)
-                    .statusTime(new Timestamp(System.currentTimeMillis()))
-                    .lastError("This is last error")
-                    .url("www.google.com" + i)
-                    .name("Google")
-                    .build();
-            DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
-        }
-
-        List<SiteEntity> sites = siteRepository.findByUrlIn(urls);
-        assertEquals(result, sites.size());
-        System.out.println();
-    }
-
 }

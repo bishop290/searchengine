@@ -1,5 +1,6 @@
 package searchengine.components;
 
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 import searchengine.config.Site;
@@ -47,24 +48,10 @@ public class SiteToDbWorker {
         return siteEntity;
     }
 
-    public void clearAllByUrls() {
-        List<String> possibleUrls = getPossibleUrls();
-        List<SiteEntity> siteEntities = siteRepository.findByUrlIn(possibleUrls);
+    public void clearAll() {
         siteRepository.deleteAll(siteEntities);
         siteRepository.flush();
-    }
-
-    public List<String> getPossibleUrls() {
-        List<String> possibleUrls = new ArrayList<>();
-        for (Site site : sites.getSites()) {
-            possibleUrls.add(site.getUrl());
-            if (site.getUrl().matches("^.*(/)$")) {
-                possibleUrls.add(site.getUrl().replaceFirst("^*(/)$", ""));
-            } else {
-                possibleUrls.add(site.getUrl() + "/");
-            }
-        }
-        return possibleUrls;
+        siteEntities.clear();
     }
 
     public Site findDomain(String url) {

@@ -87,4 +87,22 @@ class TextWorkerTest {
         String result = worker.removeHtmlTags(html).replaceAll("\\s+", "");
         assertEquals(expected, result);
     }
+
+    @Test
+    @DisplayName("URL decode")
+    void testUrlDecode() {
+        String expected = "https://sendel.ru/books/";
+        String url = "url=https%3A%2F%2Fsendel.ru%2Fbooks%2F";
+        String result = worker.urlDecode(url);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    @DisplayName("URL decode without head")
+    void testUrlDecodeWithoutHead() {
+        String expected = "https://sendel.ru/books/";
+        String url = "url=sendel.ru%2Fbooks%2F";
+        String result = worker.urlDecode(url);
+        assertEquals(expected, result);
+    }
 }

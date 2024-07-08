@@ -55,8 +55,8 @@ public class TextWorker {
         String useless = "url=";
         String head = "https://";
         url = url.replaceFirst(useless, "");
-        url = url.matches(head) ? url : head + url;
-        return URLDecoder.decode(url, StandardCharsets.UTF_8);
+        url = URLDecoder.decode(url, StandardCharsets.UTF_8);
+        return url.contains(head) ? url : head + url;
     }
 
     private String[] splitText(String text) {

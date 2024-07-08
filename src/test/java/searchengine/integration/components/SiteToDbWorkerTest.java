@@ -80,21 +80,6 @@ class SiteToDbWorkerTest extends TestContainer {
     }
 
     @Test
-    @DisplayName("Get possible urls")
-    public void testPossibleUrls() {
-        int result = 4;
-        List<Site> testSites = new ArrayList<>();
-        testSites.add(Site.builder().url("www.google.com").build());
-        testSites.add(Site.builder().url("www.duckduckgo.com/").build());
-        SitesList sites = new SitesList();
-        sites.setSites(testSites);
-        service = new SiteToDbWorker(siteRepository, sites);
-
-        List<String> possibleUrls = service.getPossibleUrls();
-        assertEquals(result, possibleUrls.size());
-    }
-
-    @Test
     @DisplayName("Find domain by Url")
     public void testFindDomain() {
         String url1 = "https://duckduckgo.com/hellokitty";
@@ -136,5 +121,26 @@ class SiteToDbWorkerTest extends TestContainer {
         Site site = Site.builder().url("https://google.com").name(resultName).build();
         SiteEntity result = service.createSite(site);
         assertEquals(resultName, result.getName());
+    }
+
+    @Test
+    @DisplayName("Clear all")
+    public void testClearAll() {
+        List<Site> testSites = new ArrayList<>();
+        testSites.add(Site.builder().url("www.google.com").name("google").build());
+        testSites.add(Site.builder().url("www.duckduckgo.com/").name("duckduckgo").build());
+        SitesList sites = new SitesList();
+        sites.setSites(testSites);
+        service = new SiteToDbWorker(siteRepository, sites);
+        service.createEntities();
+        service.saveToDatabase();
+        assertEquals(2, DatabaseWorker.count("site", jdbc));
+
+        service.clearAll();
+        assertEquals(0, DatabaseWorker.count("site", jdbc));
+
+        service.createEntities();
+        service.saveToDatabase();
+        assertEquals(2, DatabaseWorker.count("site", jdbc));
     }
 }
