@@ -110,4 +110,30 @@ class LemmaRepositoryTest extends TestContainer {
         List<LemmaEntity> lemmas = lemmaRepository.findBySiteAndLemmaIn(site, lemmaNames);
         assertEquals(numbersOfFindLemmas, lemmas.size());
     }
+
+    @Test
+    @DisplayName("Find first by site url order by freq desc")
+    void testFindFirstBySiteUrlOrderByFrequencyDesc() {
+        SiteEntity site = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
+        DatabaseWorker.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
+        DatabaseWorker.newLemmaEntityFromDb(site, "добрая белка", 2, lemmaRepository, entityManager);
+        DatabaseWorker.newLemmaEntityFromDb(site, "нейтральная белка", 3, lemmaRepository, entityManager);
+
+        LemmaEntity lemma = lemmaRepository.findFirstBySiteUrlOrderByFrequencyDesc(site.getUrl());
+        assertEquals(3, lemma.getFrequency());
+    }
+
+    @Test
+    @DisplayName("Find first order by freq desc")
+    void testFindFirstOrderByFrequencyDesc() {
+        SiteEntity site = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
+        SiteEntity site2 = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
+        DatabaseWorker.newLemmaEntityFromDb(site2, "новая белка", 4, lemmaRepository, entityManager);
+        DatabaseWorker.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
+        DatabaseWorker.newLemmaEntityFromDb(site, "добрая белка", 2, lemmaRepository, entityManager);
+        DatabaseWorker.newLemmaEntityFromDb(site, "нейтральная белка", 3, lemmaRepository, entityManager);
+
+        LemmaEntity lemma = lemmaRepository.findFirstByOrderByFrequencyDesc();
+        assertEquals(4, lemma.getFrequency());
+    }
 }
