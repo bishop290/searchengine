@@ -2,7 +2,7 @@ package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
 import searchengine.managers.JsoupData;
-import searchengine.managers.MainPageManager;
+import searchengine.managers.PageManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.concurrent.RecursiveAction;
 @RequiredArgsConstructor
 public class PageParsingTask extends RecursiveAction {
     private final String url;
-    private final MainPageManager manager;
+    private final PageManager manager;
     private JsoupData data;
     private Map<String, Integer> lemmas;
 
@@ -29,7 +29,7 @@ public class PageParsingTask extends RecursiveAction {
 
     public boolean parse() {
         data = manager.parse(url);
-        return !isChecksFail();
+        return checks();
     }
 
     public void getLemmas() {
@@ -56,20 +56,20 @@ public class PageParsingTask extends RecursiveAction {
         tasks.forEach(ForkJoinTask::join);
     }
 
-    private boolean isChecksFail() {
+    private boolean checks() {
         boolean dataIsNotValid = !data.isValid();
         if (manager.isDomain(url) && dataIsNotValid) {
             manager.statusFailed(data);
             manager.stop();
-            return true;
+            return false;
         } else if (!manager.initTextService()) {
             String message = "Error: TextService didnt start";
             manager.statusFailed(new JsoupData(url, -1, null, message));
             manager.stop();
-            return true;
+            return false;
         } else if (dataIsNotValid) {
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 }

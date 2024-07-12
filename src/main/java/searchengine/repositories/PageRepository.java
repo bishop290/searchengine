@@ -1,15 +1,24 @@
 package searchengine.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import searchengine.model.IndexEntity;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 
 import java.util.List;
-import java.util.Set;
 
 @Repository
 public interface PageRepository extends JpaRepository<PageEntity, Integer> {
+    String pagesByLemmaIdQuery = """
+            select * from `page`
+            where `id` in
+            (select `page_id` from `index`
+            where `lemma_id` = :id)
+            """;
+
     PageEntity findBySiteAndPath(SiteEntity site, String path);
+
+    @Query(value = pagesByLemmaIdQuery, nativeQuery = true)
+    List<PageEntity> findPagesByLemmaId(Integer id);
 }

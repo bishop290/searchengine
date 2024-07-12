@@ -10,21 +10,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class MainPageManager {
+public class PageManager {
     private final SiteEntity siteEntity;
     private final JsoupWorker jsoupService;
     private final PageToDbWorker dbWorker;
     private final TextWorker textWorker;
-    private final Cache cache;
-    private boolean stopFlag;
+    private final Storage storage;
+    private volatile boolean stopFlag;
 
-    public MainPageManager(
+    public PageManager(
             SiteEntity siteEntity, JsoupWorker jsoupService, PageToDbWorker dbWorker, TextWorker textWorker) {
         this.siteEntity = siteEntity;
         this.jsoupService = jsoupService;
         this.dbWorker = dbWorker;
         this.textWorker = textWorker;
-        this.cache = new Cache(dbWorker);
+        this.storage = new Storage(dbWorker);
         this.stopFlag = false;
     }
 
@@ -86,7 +86,7 @@ public class MainPageManager {
     }
 
     public boolean isNewUrl(String url) {
-        return !cache.containsLink(url);
+        return !storage.containsLink(url);
     }
 
     public void save(JsoupData data, Map<String, Integer> lemmas) {
@@ -94,33 +94,33 @@ public class MainPageManager {
             return;
         }
         PageEntity page = EntityCreator.page(
-                textWorker.path(data.url(), domain()),
-                siteEntity,
-                data.code(),
-                data.document().html());
+                textWorker.path(data.url(), domain()), siteEntity, data.code(), data.document().html());
         dbWorker.savePage(page);
 
-        List<LemmaEntity> lemmasFromDb = dbWorker.getLemmas(siteEntity, lemmas.keySet());
-        cache.addLemmas(lemmasFromDb);
+        synchronized (this) {
+            List<LemmaEntity> lemmasFromDb = dbWorker.getLemmas(siteEntity, lemmas.keySet());
+            storage.addLemmas(lemmasFromDb);
 
-        List<LemmaEntity> lemmasForSave = new ArrayList<>();
-        List<IndexEntity> indexesForSave = new ArrayList<>();
+            List<LemmaEntity> lemmasForSave = new ArrayList<>();
+            List<IndexEntity> indexesForSave = new ArrayList<>();
 
-        for (Map.Entry<String, Integer> lemma : lemmas.entrySet()) {
-            LemmaEntity currentLemma;
-            if (cache.containsLemma(lemma.getKey())) {
-                currentLemma = cache.getLemma(lemma.getKey());
-            } else {
-                currentLemma = EntityCreator.lemma(siteEntity, lemma.getKey());
-                lemmasForSave.add(currentLemma);
+            for (Map.Entry<String, Integer> lemma : lemmas.entrySet()) {
+                LemmaEntity currentLemma;
+                if (storage.containsLemma(lemma.getKey())) {
+                    currentLemma = storage.getLemma(lemma.getKey());
+                } else {
+                    currentLemma = EntityCreator.lemma(siteEntity, lemma.getKey());
+                    lemmasForSave.add(currentLemma);
+                }
+                indexesForSave.add(EntityCreator.index(page, currentLemma, lemma.getValue()));
             }
-            indexesForSave.add(EntityCreator.index(page, currentLemma, lemma.getValue()));
+            dbWorker.saveLemmas(lemmasForSave);
+            storage.addLemmas(lemmasForSave);
+            storage.addIndexes(indexesForSave);
         }
-        dbWorker.saveLemmas(lemmasForSave);
-        cache.addIndexes(indexesForSave);
     }
 
     public void closeCache() {
-        cache.close();
+        storage.close();
     }
 }

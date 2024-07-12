@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class TextWorker {
@@ -47,16 +49,40 @@ public class TextWorker {
         }
     }
 
-    public String removeHtmlTags(String text) {
-        return text.replaceAll("(<([^>]+)>)", "");
-    }
-
     public String urlDecode(String url) {
         String useless = "url=";
         String head = "https://";
         url = url.replaceFirst(useless, "");
         url = URLDecoder.decode(url, StandardCharsets.UTF_8);
         return url.contains(head) ? url : head + url;
+    }
+
+    public String firstCharToUpperCase(String word) {
+        if (word.isEmpty()) {
+            return "";
+        }
+        char[] chars = word.toCharArray();
+        chars[0] = Character.toUpperCase(chars[0]);
+        return new String(chars);
+    }
+
+    public String snippets(String text, String patternText) {
+        List<String> snippets = breakTextOnSnippets(text);
+        Pattern pattern = Pattern.compile(patternText);
+        StringBuilder builder = new StringBuilder();
+
+        snippets.forEach(snippet -> {
+            Matcher matcher = pattern.matcher(snippet);
+            if (matcher.find()) {
+                appendSnippet(builder, snippet);
+            }
+        });
+        return builder.toString();
+    }
+
+    public String bold(String word, String text) {
+        String boldWord = String.format("<b>%s</b>", word);
+        return text.replaceAll(word, boldWord);
     }
 
     private String[] splitText(String text) {
@@ -96,5 +122,20 @@ public class TextWorker {
         } else {
             map.put(word, value + 1);
         }
+    }
+
+    private List<String> breakTextOnSnippets(String text) {
+        int lengthOfSnippet = 300;
+        text = text.replaceAll(System.lineSeparator(), "");
+
+        List<String> snippets = new ArrayList<>();
+        for (int i = 0; i < text.length(); i += lengthOfSnippet) {
+            snippets.add(text.substring(i, Math.min(text.length(), i + lengthOfSnippet)));
+        }
+        return snippets;
+    }
+
+    private void appendSnippet(StringBuilder builder, String text) {
+        builder.append("...").append(text).append("...").append(System.lineSeparator());
     }
 }

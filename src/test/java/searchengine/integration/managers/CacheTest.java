@@ -10,7 +10,7 @@ import searchengine.components.PageToDbWorker;
 import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
-import searchengine.managers.Cache;
+import searchengine.managers.Storage;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
@@ -36,11 +36,11 @@ class CacheTest  extends TestContainer {
     private final IndexRepository indexRepository;
     private final EntityManager entityManager;
     private final NamedParameterJdbcTemplate jdbc;
-    private Cache cache;
+    private Storage cache;
 
     @BeforeEach
     public void init() {
-        cache = new Cache(dbWorker);
+        cache = new Storage(dbWorker);
     }
 
     @Test

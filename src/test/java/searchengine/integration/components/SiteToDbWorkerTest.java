@@ -30,7 +30,7 @@ class SiteToDbWorkerTest extends TestContainer {
     private final SiteRepository siteRepository;
     private final NamedParameterJdbcTemplate jdbc;
     private static SitesList sitesList;
-    private SiteToDbWorker service;
+    private SiteToDbWorker worker;
     private final EntityManager entityManager;
 
     @BeforeAll
@@ -46,7 +46,7 @@ class SiteToDbWorkerTest extends TestContainer {
 
     @BeforeEach
     public void init() {
-        service = new SiteToDbWorker(siteRepository, sitesList);
+        worker = new SiteToDbWorker(siteRepository, sitesList);
     }
 
     @Test
@@ -56,10 +56,10 @@ class SiteToDbWorkerTest extends TestContainer {
         String urlOfTheFirstEntity = "www.google.com0";
         String nameOfTheSecondEntity = "Google0";
 
-        service.createEntities();
-        SiteEntity entity = service.getSiteEntities().get(0);
+        List<SiteEntity> sites = worker.createEntities();
+        SiteEntity entity = sites.get(0);
 
-        assertEquals(numberOfEntities, service.getSiteEntities().size());
+        assertEquals(numberOfEntities, sites.size());
         assertNull(entity.getId());
         assertEquals(urlOfTheFirstEntity, entity.getUrl());
         assertEquals(nameOfTheSecondEntity, entity.getName());
@@ -73,8 +73,8 @@ class SiteToDbWorkerTest extends TestContainer {
     public void testSaveToDatabase() {
         int numberOfRowsInDb = 4;
 
-        service.createEntities();
-        service.saveToDatabase();
+        List<SiteEntity> sites = worker.createEntities();
+        worker.save(sites);
 
         assertEquals(numberOfRowsInDb, DatabaseWorker.count("site", jdbc));
     }
@@ -89,10 +89,10 @@ class SiteToDbWorkerTest extends TestContainer {
         testSites.add(Site.builder().url("https://duckduckgo.com/").build());
         SitesList sites = new SitesList();
         sites.setSites(testSites);
-        service = new SiteToDbWorker(siteRepository, sites);
+        worker = new SiteToDbWorker(siteRepository, sites);
 
-        assertEquals(testSites.get(1).getUrl(), service.findDomain(url1).getUrl());
-        assertNull(service.findDomain(url2));
+        assertEquals(testSites.get(1).getUrl(), worker.findDomain(url1).getUrl());
+        assertNull(worker.findDomain(url2));
     }
 
     @Test
@@ -109,8 +109,8 @@ class SiteToDbWorkerTest extends TestContainer {
                 .name("google")
                 .build();
         DatabaseWorker.saveAndDetach(siteEntity, siteRepository, entityManager);
-        assertEquals(resultName, service.getSite(site).getName());
-        assertNull(service.getSite(site2));
+        assertEquals(resultName, worker.sites(site).getName());
+        assertNull(worker.sites(site2));
 
     }
 
@@ -119,7 +119,7 @@ class SiteToDbWorkerTest extends TestContainer {
     public void testCreateSiteEntity() {
         String resultName = "hvahva";
         Site site = Site.builder().url("https://google.com").name(resultName).build();
-        SiteEntity result = service.createSite(site);
+        SiteEntity result = worker.create(site);
         assertEquals(resultName, result.getName());
     }
 
@@ -131,16 +131,16 @@ class SiteToDbWorkerTest extends TestContainer {
         testSites.add(Site.builder().url("www.duckduckgo.com/").name("duckduckgo").build());
         SitesList sites = new SitesList();
         sites.setSites(testSites);
-        service = new SiteToDbWorker(siteRepository, sites);
-        service.createEntities();
-        service.saveToDatabase();
+        worker = new SiteToDbWorker(siteRepository, sites);
+        List<SiteEntity> sitesEntities = worker.createEntities();
+        worker.save(sitesEntities);
         assertEquals(2, DatabaseWorker.count("site", jdbc));
 
-        service.clearAll();
+        worker.clearAll();
         assertEquals(0, DatabaseWorker.count("site", jdbc));
 
-        service.createEntities();
-        service.saveToDatabase();
+        List<SiteEntity> sitesEntities2 = worker.createEntities();
+        worker.save(sitesEntities2);
         assertEquals(2, DatabaseWorker.count("site", jdbc));
     }
 }

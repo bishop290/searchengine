@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @RequiredArgsConstructor
-public class Cache {
+public class Storage {
     private final PageToDbWorker dbWorker;
     private final Set<String> links = ConcurrentHashMap.newKeySet();
     private final Map<String, LemmaEntity> lemmas = new ConcurrentHashMap<>();

@@ -6,6 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import searchengine.model.*;
+import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
@@ -78,5 +79,11 @@ public class DatabaseWorker {
     public static IndexEntity getIndexEntity(PageEntity page, LemmaEntity lemma) {
         return IndexEntity.builder()
                 .page(page).lemma(lemma).rank(1).build();
+    }
+
+    public static IndexEntity newIndexEntityFromDb(PageEntity page, LemmaEntity lemma, IndexRepository repo, EntityManager manager) {
+        IndexEntity index = getIndexEntity(page, lemma);
+        saveAndDetach(index, repo, manager);
+        return index;
     }
 }

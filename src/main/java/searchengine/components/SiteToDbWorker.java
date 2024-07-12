@@ -1,7 +1,7 @@
 package searchengine.components;
 
-import jakarta.persistence.EntityManager;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
@@ -15,33 +15,36 @@ import java.util.List;
 
 @Getter
 @Component
+@RequiredArgsConstructor
 public class SiteToDbWorker {
     private final SiteRepository siteRepository;
     private final SitesList sites;
-    private final List<SiteEntity> siteEntities;
 
-    public SiteToDbWorker(SiteRepository siteRepository, SitesList sites) {
-        this.siteRepository = siteRepository;
-        this.sites = sites;
-        this.siteEntities = new ArrayList<>();
-    }
-
-    public void createEntities() {
+    public List<SiteEntity> createEntities() {
         if (sites.getSites().isEmpty()) {
-            return;
+            return new ArrayList<>();
         }
-        sites.getSites().forEach(site -> siteEntities.add(createSiteEntity(site)));
+        return sites.getSites().stream().map(this::createSiteEntity).toList();
     }
 
-    public void saveToDatabase() {
-        siteRepository.saveAllAndFlush(siteEntities);
+    public void save(List<SiteEntity> entities) {
+        siteRepository.saveAllAndFlush(entities);
     }
 
-    public SiteEntity getSite(Site site) {
+    public List<SiteEntity> sites() {
+        return siteRepository.findAll();
+    }
+
+    public SiteEntity sites(Site site) {
         return siteRepository.findByUrl(site.getUrl());
     }
 
-    public SiteEntity createSite(Site site) {
+    public SiteEntity sites(String url) {
+        Site site = findDomain(url);
+        return siteRepository.findByUrl(site.getUrl());
+    }
+
+    public SiteEntity create(Site site) {
         SiteEntity siteEntity = createSiteEntity(site);
         siteRepository.save(siteEntity);
         siteRepository.flush();
@@ -49,9 +52,8 @@ public class SiteToDbWorker {
     }
 
     public void clearAll() {
-        siteRepository.deleteAll(siteEntities);
+        siteRepository.deleteAllInBatch();
         siteRepository.flush();
-        siteEntities.clear();
     }
 
     public Site findDomain(String url) {

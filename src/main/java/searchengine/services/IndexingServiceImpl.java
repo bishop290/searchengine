@@ -2,20 +2,15 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.components.JsoupWorker;
-import searchengine.components.PageToDbWorker;
-import searchengine.components.SiteToDbWorker;
-import searchengine.components.TextWorker;
+import searchengine.components.*;
 import searchengine.config.Site;
 import searchengine.dto.indexing.IndexingResponse;
 import searchengine.exceptions.IndexingIsAlreadyRunningException;
 import searchengine.exceptions.IndexingIsNotRunningException;
 import searchengine.exceptions.PageDoesNotBelongToTheListedSites;
-import searchengine.managers.MainPageManager;
-import searchengine.model.PageEntity;
+import searchengine.managers.PageManager;
 import searchengine.model.SiteEntity;
-import searchengine.tasks.PageParsingTask;
-import searchengine.tasks.SiteIndexingTask;
+import searchengine.tasks.IndexingTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,29 +18,36 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService {
-    private final SiteToDbWorker websiteService;
-    private final PageToDbWorker pageService;
-    private final JsoupWorker jsoupService;
-    private final TextWorker textService;
-    private final List<SiteIndexingTask> tasks = new ArrayList<>();
+    private final SiteToDbWorker siteWorker;
+    private final PageToDbWorker pageWorker;
+    private final JsoupWorker jsoupWorker;
+    private final TextWorker textWorker;
+    private final OnePageWorker onePageWorker;
+    private final List<IndexingTask> tasks = new ArrayList<>();
 
     @Override
     public IndexingResponse start() {
-        if (tasks.stream().anyMatch(SiteIndexingTask::isRunning)) {
+        if (tasks.stream().anyMatch(IndexingTask::isRunning)) {
             throw new IndexingIsAlreadyRunningException();
         }
-        websiteService.clearAll();
-        websiteService.createEntities();
-        websiteService.saveToDatabase();
-        createTasks(websiteService.getSiteEntities());
 
+        siteWorker.clearAll();
+        List<SiteEntity> sites = siteWorker.createEntities();
+        siteWorker.save(sites);
+
+        sites.forEach(site -> {
+            PageManager manager = new PageManager(site, jsoupWorker, pageWorker, textWorker);
+            IndexingTask task = new IndexingTask(manager);
+            task.start();
+            tasks.add(task);
+        });
         return new IndexingResponse(true);
     }
 
     @Override
     public IndexingResponse stop() {
-        if (tasks.stream().anyMatch(SiteIndexingTask::isRunning)) {
-            tasks.forEach(SiteIndexingTask::stop);
+        if (tasks.stream().anyMatch(IndexingTask::isRunning)) {
+            tasks.forEach(IndexingTask::stop);
             return new IndexingResponse(true);
         }
         throw new IndexingIsNotRunningException();
@@ -53,55 +55,12 @@ public class IndexingServiceImpl implements IndexingService {
 
     @Override
     public IndexingResponse startOnePage(String url) {
-        url = textService.urlDecode(url);
-        Site site = websiteService.findDomain(url);
+        url = textWorker.urlDecode(url);
+        Site site = siteWorker.findDomain(url);
         if (site == null) {
             throw new PageDoesNotBelongToTheListedSites();
         }
-        parseOnePage(url, site);
+        onePageWorker.parse(url, site);
         return new IndexingResponse(true);
-    }
-
-    private void createTasks(List<SiteEntity> sites) {
-        sites.forEach(entity -> {
-            SiteIndexingTask task = new SiteIndexingTask(
-                    new MainPageManager(entity, jsoupService, pageService, textService));
-            task.start();
-            tasks.add(task);
-        });
-    }
-
-    private void parseOnePage(String url, Site site) {
-        SiteEntity siteEntity = websiteService.getSite(site);
-        if (siteEntity == null) {
-            siteEntity = websiteService.createSite(site);
-            parseNewPage(url, siteEntity);
-        } else {
-            parseOldPage(url, siteEntity);
-        }
-    }
-
-    private void parseNewPage(String url, SiteEntity siteEntity) {
-        MainPageManager manager = new MainPageManager(siteEntity, jsoupService, pageService, textService);
-        PageParsingTask parsingTask = new PageParsingTask(url, manager);
-        if (!parsingTask.parse()) {
-            return;
-        }
-        parsingTask.getLemmas();
-        parsingTask.saveData();
-        manager.closeCache();
-        manager.statusIndexed();
-        manager.stop();
-    }
-
-    private void parseOldPage(String url, SiteEntity siteEntity) {
-        String path = textService.path(url, siteEntity.getUrl());
-        PageEntity pageEntity = pageService.getPage(siteEntity, path);
-        if (pageEntity == null) {
-            parseNewPage(url, siteEntity);
-        } else {
-            pageService.removePage(pageEntity);
-            parseNewPage(url, siteEntity);
-        }
     }
 }

@@ -6,14 +6,19 @@ import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import searchengine.config.JsoupSettings;
 import searchengine.components.JsoupWorker;
+import searchengine.config.JsoupSettings;
+import searchengine.managers.PageText;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @RequiredArgsConstructor
 @DisplayName("\"JsoupWorker\" unit tests")
@@ -36,5 +41,17 @@ class JsoupWorkerTest {
         Document doc = Jsoup.parse(input, "UTF-8", domain);
         List<String> links = jsoupWorker.getLinks(doc, domain);
         assertEquals(numberOfLinks, links.size());
+    }
+
+    @Test
+    @DisplayName("Get text from html")
+    void testGetTextFromHtml() throws IOException {
+        String title = "Konstantin Shibkov";
+        String testPage = "src/test/resources/testpage.html";
+        String html = Files.readString(Path.of(testPage), Charset.defaultCharset());
+
+        PageText data = jsoupWorker.getTextFromHtml(html);
+        assertEquals(title, data.title());
+        assertNotEquals("", data.body());
     }
 }

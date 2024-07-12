@@ -10,6 +10,7 @@ import searchengine.integration.tools.DatabaseWorker;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
 import searchengine.model.*;
+import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
@@ -28,6 +29,7 @@ class PageRepositoryTest extends TestContainer {
     private final PageRepository pageRepository;
     private final EntityManager entityManager;
     private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
     private final NamedParameterJdbcTemplate jdbc;
 
     private static String path;
@@ -99,5 +101,30 @@ class PageRepositoryTest extends TestContainer {
 
         PageEntity resultPage = pageRepository.findBySiteAndPath(site, path);
         assertEquals(resultPage.getPath(), path);
+    }
+
+    @Test
+    @DisplayName("Find pages by lemma id")
+    public void testFindPagesByLemmaId() {
+        SiteEntity site = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
+        SiteEntity site2 = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
+        LemmaEntity lemma = DatabaseWorker.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma2 = DatabaseWorker.newLemmaEntityFromDb(site, "добрая белка", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma3 = DatabaseWorker.newLemmaEntityFromDb(site2, "нейтральная белка", 1, lemmaRepository, entityManager);
+
+        PageEntity page1 = DatabaseWorker.newPageEntityFromDb(site, "/hello", pageRepository, entityManager);
+        PageEntity page2 = DatabaseWorker.newPageEntityFromDb(site, "/hello/kitty", pageRepository, entityManager);
+        PageEntity page3 = DatabaseWorker.newPageEntityFromDb(site, "/hello/frog", pageRepository, entityManager);
+        PageEntity page4 = DatabaseWorker.newPageEntityFromDb(site2, "/hello/pig", pageRepository, entityManager);
+
+        DatabaseWorker.newIndexEntityFromDb(page1, lemma, indexRepository, entityManager);
+        DatabaseWorker.newIndexEntityFromDb(page2, lemma, indexRepository, entityManager);
+        DatabaseWorker.newIndexEntityFromDb(page3, lemma2, indexRepository, entityManager);
+        DatabaseWorker.newIndexEntityFromDb(page4, lemma3, indexRepository, entityManager);
+
+        List<PageEntity> pages = pageRepository.findPagesByLemmaId(lemma.getId());
+        assertEquals(2, pages.size());
+        assertEquals("/hello", pages.get(0).getPath());
+        assertEquals("/hello/kitty", pages.get(1).getPath());
     }
 }

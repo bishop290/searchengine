@@ -121,4 +121,38 @@ class IndexRepositoryTest extends TestContainer {
         List<IndexEntity> resultEntities = indexRepository.findByPage(page);
         assertEquals(2, resultEntities.size());
     }
+
+    @Test
+    @DisplayName("Find Indexes by pages and lemmas")
+    public void findByPageInAndLemmaIn()  {
+        SiteEntity site = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
+        SiteEntity site2 = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
+        LemmaEntity lemma = DatabaseWorker.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma2 = DatabaseWorker.newLemmaEntityFromDb(site, "добрая белка", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma3 = DatabaseWorker.newLemmaEntityFromDb(site2, "нейтральная белка", 1, lemmaRepository, entityManager);
+
+        PageEntity page1 = DatabaseWorker.newPageEntityFromDb(site, "/hello", pageRepository, entityManager);
+        PageEntity page2 = DatabaseWorker.newPageEntityFromDb(site, "/hello/kitty", pageRepository, entityManager);
+        PageEntity page3 = DatabaseWorker.newPageEntityFromDb(site, "/hello/frog", pageRepository, entityManager);
+        PageEntity page4 = DatabaseWorker.newPageEntityFromDb(site2, "/hello/pig", pageRepository, entityManager);
+
+        DatabaseWorker.newIndexEntityFromDb(page1, lemma, indexRepository, entityManager);
+        DatabaseWorker.newIndexEntityFromDb(page2, lemma, indexRepository, entityManager);
+        DatabaseWorker.newIndexEntityFromDb(page2, lemma2, indexRepository, entityManager);
+        DatabaseWorker.newIndexEntityFromDb(page2, lemma3, indexRepository, entityManager);
+        DatabaseWorker.newIndexEntityFromDb(page3, lemma, indexRepository, entityManager);
+        DatabaseWorker.newIndexEntityFromDb(page4, lemma3, indexRepository, entityManager);
+
+        List<PageEntity> pages = new ArrayList<>();
+        pages.add(page1);
+        pages.add(page2);
+        pages.add(page3);
+        List<LemmaEntity> lemmas = new ArrayList<>();
+        lemmas.add(lemma);
+        lemmas.add(lemma2);
+
+        List<IndexEntity> indexes = indexRepository.findByPageInAndLemmaInOrderByPageIdAsc(pages, lemmas);
+        assertEquals(4, indexes.size());
+        assertEquals("/hello", indexes.get(0).getPage().getPath());
+    }
 }

@@ -26,10 +26,10 @@ indexing-settings:
     #  name: Институт прикладной физики им. А.В. Гапонова-Грехова
     - url: https://dombulgakova.ru
       name: Дом Булгакова. Музей Театр
-    - url: https://nikoartgallery.com
-      name: Галерея Никогосяна
-    #- url: https://www.svetlovka.ru/
-    #  name: Библиотека Светловка
+    #- url: https://nikoartgallery.com
+    #  name: Галерея Никогосяна
+    - url: https://www.svetlovka.ru/
+      name: Библиотека Светловка
     - url: https://sendel.ru/
       name: sendel
 
@@ -39,4 +39,4 @@ jsoup-settings:
   delay: 1000
 
 search-settings:
-  frequency-limit-in-percentage: 10
+  frequency-limit-in-percentage: 40

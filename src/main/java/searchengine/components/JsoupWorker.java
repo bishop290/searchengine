@@ -10,6 +10,7 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import searchengine.config.JsoupSettings;
 import searchengine.managers.JsoupData;
+import searchengine.managers.PageText;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,6 +65,11 @@ public class JsoupWorker {
 
     public boolean isDomain(String url, String domain) {
         return url.equals(domain) || url.equals(domain + "/");
+    }
+
+    public PageText getTextFromHtml(String html) {
+        Document document = Jsoup.parse(html);
+        return new PageText(document.title(), document.body().text());
     }
 
     private boolean isUrlValid(String url, String domain) {
