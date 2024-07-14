@@ -1,11 +1,21 @@
 package searchengine.managers;
 
-import searchengine.model.IndexEntity;
-import searchengine.model.LemmaEntity;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
+import searchengine.config.Site;
+import searchengine.model.*;
 
-public class EntityCreator {
+import java.sql.Timestamp;
+
+public class Creator {
+    public static SiteEntity site(Site site) {
+        return SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError(null)
+                .url(site.getUrl())
+                .name(site.getName())
+                .build();
+    }
+
     public static PageEntity page(String path, SiteEntity site, int code, String content) {
         return PageEntity.builder()
                 .path(path)

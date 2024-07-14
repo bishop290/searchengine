@@ -16,7 +16,7 @@ import java.util.Objects;
 public class SearchingTask implements Runnable {
     private final SearchManager manager;
     private final Map<String, Integer> lemmasInText;
-    private final List<PageToDataTask> children = new ArrayList<>();
+    private final List<CollectTask> children = new ArrayList<>();
     private Thread thread;
 
     public void start() {
@@ -65,12 +65,12 @@ public class SearchingTask implements Runnable {
                 indexesForTask.add(entity);
             } else {
                 pageId = currentId;
-                PageToDataTask task = new PageToDataTask(manager, indexesForTask);
+                CollectTask task = new CollectTask(manager, indexesForTask);
                 task.start();
                 children.add(task);
                 indexesForTask = new ArrayList<>();
             }
         }
-        children.forEach(PageToDataTask::join);
+        children.forEach(CollectTask::join);
     }
 }

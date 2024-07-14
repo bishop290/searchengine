@@ -2,10 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.components.JsoupWorker;
-import searchengine.components.LemmaSearch;
-import searchengine.components.SiteToDbWorker;
-import searchengine.components.TextWorker;
+import searchengine.components.*;
 import searchengine.dto.searching.PageData;
 import searchengine.dto.searching.SearchRequest;
 import searchengine.dto.searching.SearchResponse;
@@ -25,8 +22,8 @@ import java.util.Map;
 public class SearchServiceImpl implements SearchService {
     private final PageRepository pageRepository;
     private final IndexRepository indexRepository;
+    private final Database database;
     private final LemmaSearch lemmaSearch;
-    private final SiteToDbWorker siteWorker;
     private final JsoupWorker jsoupWorker;
     private final TextWorker textWorker;
     private final List<SearchingTask> tasks = new ArrayList<>();
@@ -41,9 +38,9 @@ public class SearchServiceImpl implements SearchService {
         }
         List<SiteEntity> sites = new ArrayList<>();
         if (request.site() == null) {
-            sites.addAll(siteWorker.sites());
+            sites.addAll(database.sites());
         } else {
-            sites.add(siteWorker.sites(request.site()));
+            sites.add(database.sites(request.site()));
         }
         if (sites.isEmpty()) {
             return null; //exception

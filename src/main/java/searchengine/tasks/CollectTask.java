@@ -8,7 +8,7 @@ import searchengine.model.IndexEntity;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class PageToDataTask implements Runnable {
+public class CollectTask implements Runnable {
     private final SearchManager manager;
     private final List<IndexEntity> indexes;
     private Thread thread;

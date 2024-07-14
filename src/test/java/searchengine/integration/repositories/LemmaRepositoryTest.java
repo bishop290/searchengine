@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import searchengine.integration.tools.DatabaseWorker;
+import searchengine.integration.tools.DbHelper;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
 import searchengine.model.LemmaEntity;
@@ -60,7 +60,7 @@ class LemmaRepositoryTest extends TestContainer {
                 .lastError("This is last error")
                 .url(siteUrl)
                 .name("Google").build();
-        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
+        DbHelper.saveAndDetach(site, siteRepository, entityManager);
 
         LemmaEntity lemmaEntity = LemmaEntity.builder()
                 .site(site)
@@ -68,8 +68,8 @@ class LemmaRepositoryTest extends TestContainer {
                 .frequency(freq)
                 .build();
 
-        DatabaseWorker.saveAndDetach(lemmaEntity, repository, entityManager);
-        LemmaEntity savedLemma = DatabaseWorker.get(LemmaEntity.class, jdbc);
+        DbHelper.saveAndDetach(lemmaEntity, repository, entityManager);
+        LemmaEntity savedLemma = DbHelper.get(LemmaEntity.class, jdbc);
 
         assertEquals(lemma, savedLemma.getLemma());
         assertEquals(freq, savedLemma.getFrequency());
@@ -95,9 +95,9 @@ class LemmaRepositoryTest extends TestContainer {
                 .url(siteUrl)
                 .name("Google").build();
 
-        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
+        DbHelper.saveAndDetach(site, siteRepository, entityManager);
         for (int i = 0; i < numberOfLemmas; i++) {
-            DatabaseWorker.saveAndDetach(
+            DbHelper.saveAndDetach(
                     LemmaEntity.builder()
                     .site(site)
                     .lemma(lemma + i)
@@ -114,10 +114,10 @@ class LemmaRepositoryTest extends TestContainer {
     @Test
     @DisplayName("Find first by site url order by freq desc")
     void testFindFirstBySiteUrlOrderByFrequencyDesc() {
-        SiteEntity site = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
-        DatabaseWorker.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
-        DatabaseWorker.newLemmaEntityFromDb(site, "добрая белка", 2, lemmaRepository, entityManager);
-        DatabaseWorker.newLemmaEntityFromDb(site, "нейтральная белка", 3, lemmaRepository, entityManager);
+        SiteEntity site = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        DbHelper.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
+        DbHelper.newLemmaEntityFromDb(site, "добрая белка", 2, lemmaRepository, entityManager);
+        DbHelper.newLemmaEntityFromDb(site, "нейтральная белка", 3, lemmaRepository, entityManager);
 
         LemmaEntity lemma = lemmaRepository.findFirstBySiteOrderByFrequencyDesc(site);
         assertEquals(3, lemma.getFrequency());

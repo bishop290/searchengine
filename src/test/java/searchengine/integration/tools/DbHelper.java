@@ -14,7 +14,7 @@ import searchengine.repositories.SiteRepository;
 import java.sql.Timestamp;
 import java.util.HashMap;
 
-public class DatabaseWorker {
+public class DbHelper {
 
     public static <T, S> void saveToDb(T entity, CrudRepository<T, S> repository, EntityManager manager) {
         repository.save(entity);

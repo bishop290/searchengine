@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import searchengine.integration.tools.DatabaseWorker;
+import searchengine.integration.tools.DbHelper;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
 import searchengine.model.*;
@@ -40,7 +40,7 @@ class SiteStatisticsRepositoryTest extends TestContainer {
                 .lastError("This is last error")
                 .url("www.google.com")
                 .name("Google").build();
-        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
+        DbHelper.saveAndDetach(site, siteRepository, entityManager);
 
         SiteEntity site2 = SiteEntity.builder()
                 .status(Status.INDEXING)
@@ -48,42 +48,42 @@ class SiteStatisticsRepositoryTest extends TestContainer {
                 .lastError("This is last error")
                 .url("www.moogle.com")
                 .name("Moogle").build();
-        DatabaseWorker.saveAndDetach(site2, siteRepository, entityManager);
+        DbHelper.saveAndDetach(site2, siteRepository, entityManager);
 
         PageEntity page1 = PageEntity.builder()
                 .site(site)
                 .path("/")
                 .code(200)
                 .content("Hello world").build();
-        DatabaseWorker.saveAndDetach(page1, pageRepository, entityManager);
+        DbHelper.saveAndDetach(page1, pageRepository, entityManager);
 
         PageEntity page2 = PageEntity.builder()
                 .site(site)
                 .path("/")
                 .code(200)
                 .content("Hello world").build();
-        DatabaseWorker.saveAndDetach(page2, pageRepository, entityManager);
+        DbHelper.saveAndDetach(page2, pageRepository, entityManager);
 
         PageEntity page3 = PageEntity.builder()
                 .site(site2)
                 .path("/")
                 .code(200)
                 .content("Hello world").build();
-        DatabaseWorker.saveAndDetach(page3, pageRepository, entityManager);
+        DbHelper.saveAndDetach(page3, pageRepository, entityManager);
 
         LemmaEntity lemma1 = LemmaEntity.builder()
                 .site(site)
                 .lemma("ягуар")
                 .frequency(10)
                 .build();
-        DatabaseWorker.saveAndDetach(lemma1, lemmaRepository, entityManager);
+        DbHelper.saveAndDetach(lemma1, lemmaRepository, entityManager);
 
         LemmaEntity lemma2 = LemmaEntity.builder()
                 .site(site2)
                 .lemma("ягуар")
                 .frequency(10)
                 .build();
-        DatabaseWorker.saveAndDetach(lemma2, lemmaRepository, entityManager);
+        DbHelper.saveAndDetach(lemma2, lemmaRepository, entityManager);
 
         List<SiteStatistics> statistics = siteStatisticsRepository.findAll();
         assertEquals(2, statistics.size());

@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import searchengine.integration.tools.DatabaseWorker;
+import searchengine.integration.tools.DbHelper;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
 import searchengine.model.*;
@@ -48,8 +48,8 @@ class SiteRepositoryTest extends TestContainer {
                 .url(url)
                 .name(name).build();
 
-        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
-        SiteEntity savedSite = DatabaseWorker.get(SiteEntity.class, jdbc);
+        DbHelper.saveAndDetach(site, siteRepository, entityManager);
+        SiteEntity savedSite = DbHelper.get(SiteEntity.class, jdbc);
 
         assertEquals(savedSite.getStatus(), Status.INDEXING);
         assertTrue((savedSite.getStatusTime().getTime() - timestamp.getTime()) < permissibleTimeError);
@@ -87,11 +87,11 @@ class SiteRepositoryTest extends TestContainer {
                 .rank(3)
                 .build();
 
-        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
-        DatabaseWorker.saveAndDetach(firstPage, pageRepository, entityManager);
-        DatabaseWorker.saveAndDetach(secondPage, pageRepository, entityManager);
-        DatabaseWorker.saveAndDetach(lemma, lemmaRepository, entityManager);
-        DatabaseWorker.saveAndDetach(index, indexRepository, entityManager);
+        DbHelper.saveAndDetach(site, siteRepository, entityManager);
+        DbHelper.saveAndDetach(firstPage, pageRepository, entityManager);
+        DbHelper.saveAndDetach(secondPage, pageRepository, entityManager);
+        DbHelper.saveAndDetach(lemma, lemmaRepository, entityManager);
+        DbHelper.saveAndDetach(index, indexRepository, entityManager);
 
         List<SiteEntity> entities = new ArrayList<>();
         entities.add(site);
@@ -99,15 +99,15 @@ class SiteRepositoryTest extends TestContainer {
         siteRepository.deleteAll(entities);
         siteRepository.flush();
 
-        assertEquals(0, DatabaseWorker.count("page", jdbc));
-        assertEquals(0, DatabaseWorker.count("lemma", jdbc));
-        assertEquals(0, DatabaseWorker.count("index", jdbc));
-        assertEquals(0, DatabaseWorker.count("site", jdbc));
+        assertEquals(0, DbHelper.count("page", jdbc));
+        assertEquals(0, DbHelper.count("lemma", jdbc));
+        assertEquals(0, DbHelper.count("index", jdbc));
+        assertEquals(0, DbHelper.count("site", jdbc));
 
         siteRepository.save(site);
-        assertEquals(1, DatabaseWorker.count("site", jdbc));
-        assertEquals(0, DatabaseWorker.count("page", jdbc));
-        assertEquals(0, DatabaseWorker.count("lemma", jdbc));
-        assertEquals(0, DatabaseWorker.count("index", jdbc));
+        assertEquals(1, DbHelper.count("site", jdbc));
+        assertEquals(0, DbHelper.count("page", jdbc));
+        assertEquals(0, DbHelper.count("lemma", jdbc));
+        assertEquals(0, DbHelper.count("index", jdbc));
     }
 }

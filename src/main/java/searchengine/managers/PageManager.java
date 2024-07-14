@@ -1,48 +1,37 @@
 package searchengine.managers;
 
+import com.google.common.collect.Iterables;
+import lombok.RequiredArgsConstructor;
+import searchengine.components.Database;
 import searchengine.components.JsoupWorker;
-import searchengine.components.PageToDbWorker;
 import searchengine.components.TextWorker;
 import searchengine.model.*;
+import searchengine.tasks.WritingTask;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+@RequiredArgsConstructor
 public class PageManager {
-    private final SiteEntity siteEntity;
-    private final JsoupWorker jsoupService;
-    private final PageToDbWorker dbWorker;
+    private final SiteEntity site;
+    private final JsoupWorker jsoupWorker;
+    private final Database database;
     private final TextWorker textWorker;
     private final Storage storage;
-    private volatile boolean stopFlag;
 
-    public PageManager(
-            SiteEntity siteEntity, JsoupWorker jsoupService, PageToDbWorker dbWorker, TextWorker textWorker) {
-        this.siteEntity = siteEntity;
-        this.jsoupService = jsoupService;
-        this.dbWorker = dbWorker;
-        this.textWorker = textWorker;
-        this.storage = new Storage(dbWorker);
-        this.stopFlag = false;
-    }
+    private volatile boolean stopFlag = false;
 
-    public void stop() {
-        this.stopFlag = true;
-    }
+    public void stop() { this.stopFlag = true; }
 
-    public boolean isStop() {
-        return stopFlag;
-    }
+    public boolean isStop() { return stopFlag; }
 
-    public String domain() {
-        return siteEntity.getUrl();
-    }
+    public String domain() { return site.getUrl(); }
 
-    public boolean isDomain(String url) {
-        return jsoupService.isDomain(url, siteEntity.getUrl());
-    }
+    public boolean isDomain(String url) { return jsoupWorker.isDomain(url, site.getUrl()); }
 
     public boolean initTextService() {
         try {
@@ -55,14 +44,14 @@ public class PageManager {
 
     public void statusStop() {
         String text = "Индексация остановлена пользователем";
-        dbWorker.siteUpdate(siteEntity, Status.FAILED, text);
+        database.siteUpdate(site, Status.FAILED, text);
     }
 
     public void statusIndexed() {
         if (stopFlag) {
             return;
         }
-        dbWorker.siteUpdate(siteEntity, Status.INDEXED, "");
+        database.siteUpdate(site, Status.INDEXED, "");
     }
 
     public void statusFailed(JsoupData data) {
@@ -70,57 +59,63 @@ public class PageManager {
             return;
         }
         String text = String.format("%d: %s", data.code(), data.errorMessage());
-        dbWorker.siteUpdate(siteEntity, Status.FAILED, text);
+        database.siteUpdate(site, Status.FAILED, text);
     }
 
-    public JsoupData parse(String url) {
-        return jsoupService.connect(url);
-    }
+    public JsoupData parse(String url) { return jsoupWorker.connect(url); }
 
-    public Map<String, Integer> createLemmas(JsoupData data) {
-        return textWorker.lemmas(data.document().text());
-    }
+    public Map<String, Integer> createIndex(JsoupData data) { return textWorker.lemmas(data.document().text()); }
 
-    public List<String> links(JsoupData data) {
-        return jsoupService.getLinks(data.document(), domain());
-    }
+    public List<String> links(JsoupData data) { return jsoupWorker.getLinks(data.document(), domain()); }
 
-    public boolean isNewUrl(String url) {
-        return !storage.containsLink(url);
-    }
+    public boolean isNewUrl(String url) { return !storage.containsLink(url); }
 
-    public void save(JsoupData data, Map<String, Integer> lemmas) {
+    public String save(JsoupData data, Map<String, Integer> index) {
         if (stopFlag) {
-            return;
+            return "";
         }
-        PageEntity page = EntityCreator.page(
-                textWorker.path(data.url(), domain()), siteEntity, data.code(), data.document().html());
-        dbWorker.savePage(page);
+        String path = textWorker.path(data.url(), domain());
+        String html = data.document().html();
+        storage.addPage(Creator.page(path, site, data.code(), html), index);
+        index.forEach((k, v) -> storage.addLemma(k, site));
+        return path;
+    }
 
-        synchronized (this) {
-            List<LemmaEntity> lemmasFromDb = dbWorker.getLemmas(siteEntity, lemmas.keySet());
-            storage.addLemmas(lemmasFromDb);
+    public void writePages() { database.insertPages(storage.pages()); }
 
-            List<LemmaEntity> lemmasForSave = new ArrayList<>();
-            List<IndexEntity> indexesForSave = new ArrayList<>();
+    public void writeLemmas() { database.insertLemmas(storage.lemmas()); }
 
-            for (Map.Entry<String, Integer> lemma : lemmas.entrySet()) {
-                LemmaEntity currentLemma;
-                if (storage.containsLemma(lemma.getKey())) {
-                    currentLemma = storage.getLemma(lemma.getKey());
-                } else {
-                    currentLemma = EntityCreator.lemma(siteEntity, lemma.getKey());
-                    lemmasForSave.add(currentLemma);
-                }
-                indexesForSave.add(EntityCreator.index(page, currentLemma, lemma.getValue()));
-            }
-            dbWorker.saveLemmas(lemmasForSave);
-            storage.addLemmas(lemmasForSave);
-            storage.addIndexes(indexesForSave);
+    public void writeIndexes(Set<IndexEntity> indexes) { database.insertIndexes(new ArrayList<>(indexes)); }
+
+    public void prepareStorage() {
+        storage.getLinks().clear();
+        storage.getPages().clear();
+        storage.getPages().addAll(database.pages(site));
+        storage.getLemmas().putAll(database.lemmas(site));
+    }
+
+    public Set<PageEntity> pages() { return storage.getPages(); }
+
+    public LemmaEntity lemma(String name) { return storage.lemmas(name); }
+
+    public Map<String, Integer> indexData(PageEntity page) { return storage.pageIndex(page.getPath()); }
+
+    public void handleIndexes() {
+        Iterable<List<PageEntity>> pageSets = Iterables.partition(pages(), 100);
+        for (List<PageEntity> set : pageSets) {
+            writeIndexes(set);
         }
     }
 
-    public void closeCache() {
-        storage.close();
+    private void writeIndexes(List<PageEntity> pages) {
+        Set<IndexEntity> indexes = ConcurrentHashMap.newKeySet();
+        List<WritingTask> children = new ArrayList<>();
+        for (PageEntity page : pages) {
+            WritingTask task = new WritingTask(this, page, indexes);
+            task.start();
+            children.add(task);
+        }
+        children.forEach(WritingTask::join);
+        writeIndexes(indexes);
     }
 }

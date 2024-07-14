@@ -7,6 +7,7 @@ import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface PageRepository extends JpaRepository<PageEntity, Integer> {
@@ -17,6 +18,7 @@ public interface PageRepository extends JpaRepository<PageEntity, Integer> {
             where `lemma_id` = :id)
             """;
 
+    Set<PageEntity> findBySite(SiteEntity site);
     PageEntity findBySiteAndPath(SiteEntity site, String path);
 
     @Query(value = pagesByLemmaIdQuery, nativeQuery = true)

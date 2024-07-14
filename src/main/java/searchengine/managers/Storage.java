@@ -2,10 +2,9 @@ package searchengine.managers;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import searchengine.components.PageToDbWorker;
-import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
+import searchengine.model.PageEntity;
+import searchengine.model.SiteEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 @RequiredArgsConstructor
 public class Storage {
-    private final PageToDbWorker dbWorker;
     private final Set<String> links = ConcurrentHashMap.newKeySet();
     private final Map<String, LemmaEntity> lemmas = new ConcurrentHashMap<>();
-    private final List<IndexEntity> indexes = new ArrayList<>();
-    @Setter
-    private int limit = 10000;
+    private final Set<PageEntity> pages = ConcurrentHashMap.newKeySet();
+    private final Map<String, Map<String, Integer>> indexes = new ConcurrentHashMap<>();
 
     public boolean containsLink(String link) {
         boolean result = links.contains(link);
@@ -29,51 +26,25 @@ public class Storage {
         return result;
     }
 
-    public boolean containsLemma(String lemmaName) {
-        return lemmas.containsKey(lemmaName);
-    }
-
-    public LemmaEntity getLemma(String lemmaName) {
-        return lemmas.get(lemmaName);
-    }
-
-    public void addLemmas(List<LemmaEntity> entities) {
-        updateLemmas();
-        entities.forEach(entity -> {
-            if (lemmas.containsKey(entity.getLemma())) {
-                LemmaEntity lemma = lemmas.get(entity.getLemma());
-                lemma.setFrequency(lemma.getFrequency() + 1);
-            } else {
-                lemmas.put(entity.getLemma(), entity);
-            }
-        });
-    }
-
-    public void addIndexes(List<IndexEntity> entities) {
-        updateIndexes();
-        indexes.addAll(entities);
-    }
-
-    public int getSize() {
-        return links.size();
-    }
-
-    public void close() {
-        dbWorker.updateLemmas(new ArrayList<>(lemmas.values()));
-        dbWorker.insertIndexes(indexes);
-    }
-
-    private void updateLemmas() {
-        if (lemmas.size() >= limit) {
-            dbWorker.updateLemmas(new ArrayList<>(lemmas.values()));
-            lemmas.clear();
+    public void addLemma(String key, SiteEntity site) {
+        if (lemmas.containsKey(key)) {
+            LemmaEntity entity = lemmas.get(key);
+            entity.setFrequency(entity.getFrequency() + 1);
+        } else {
+            lemmas.put(key, Creator.lemma(site, key));
         }
     }
 
-    private void updateIndexes() {
-        if (indexes.size() >= limit) {
-            dbWorker.insertIndexes(indexes);
-            indexes.clear();
-        }
+    public void addPage(PageEntity page, Map<String, Integer> index) {
+        pages.add(page);
+        indexes.put(page.getPath(), index);
     }
+
+    public List<PageEntity> pages() { return new ArrayList<>(pages); }
+
+    public LemmaEntity lemmas(String key) { return lemmas.get(key); }
+
+    public List<LemmaEntity> lemmas() { return new ArrayList<>(lemmas.values()); }
+
+    public Map<String, Integer> pageIndex(String path) { return indexes.get(path); }
 }

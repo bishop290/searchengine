@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import searchengine.integration.tools.DatabaseWorker;
+import searchengine.integration.tools.DbHelper;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
 import searchengine.model.*;
@@ -40,14 +40,14 @@ class IndexRepositoryTest extends TestContainer {
                 .lastError("This is last error")
                 .url("www.google.com")
                 .name("Google").build();
-        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
+        DbHelper.saveAndDetach(site, siteRepository, entityManager);
 
         PageEntity page = PageEntity.builder()
                 .site(site)
                 .path("/")
                 .code(200)
                 .content("Hello world").build();
-        DatabaseWorker.saveAndDetach(page, pageRepository, entityManager);
+        DbHelper.saveAndDetach(page, pageRepository, entityManager);
 
         LemmaEntity lemma = LemmaEntity.builder()
                 .site(site)
@@ -61,10 +61,10 @@ class IndexRepositoryTest extends TestContainer {
                 .lemma(lemma)
                 .rank(rank).build();
 
-        DatabaseWorker.saveAndDetach(lemma, lemmaRepository, entityManager);
-        DatabaseWorker.saveAndDetach(index, indexRepository, entityManager);
+        DbHelper.saveAndDetach(lemma, lemmaRepository, entityManager);
+        DbHelper.saveAndDetach(index, indexRepository, entityManager);
 
-        IndexEntity savedIndex = DatabaseWorker.get(IndexEntity.class, jdbc);
+        IndexEntity savedIndex = DbHelper.get(IndexEntity.class, jdbc);
         assertEquals(rank, savedIndex.getRank());
     }
 
@@ -77,28 +77,28 @@ class IndexRepositoryTest extends TestContainer {
                 .lastError("This is last error")
                 .url("www.google.com")
                 .name("Google").build();
-        DatabaseWorker.saveAndDetach(site, siteRepository, entityManager);
+        DbHelper.saveAndDetach(site, siteRepository, entityManager);
 
         PageEntity page = PageEntity.builder()
                 .site(site)
                 .path("/")
                 .code(200)
                 .content("Hello world").build();
-        DatabaseWorker.saveAndDetach(page, pageRepository, entityManager);
+        DbHelper.saveAndDetach(page, pageRepository, entityManager);
 
         PageEntity page2 = PageEntity.builder()
                 .site(site)
                 .path("/")
                 .code(200)
                 .content("Hello world").build();
-        DatabaseWorker.saveAndDetach(page2, pageRepository, entityManager);
+        DbHelper.saveAndDetach(page2, pageRepository, entityManager);
 
         LemmaEntity lemma = LemmaEntity.builder()
                 .site(site)
                 .lemma("ягуар")
                 .frequency(10)
                 .build();
-        DatabaseWorker.saveAndDetach(lemma, lemmaRepository, entityManager);
+        DbHelper.saveAndDetach(lemma, lemmaRepository, entityManager);
 
         float rank = 0.1f;
         IndexEntity index1 = IndexEntity.builder()
@@ -114,9 +114,9 @@ class IndexRepositoryTest extends TestContainer {
                 .lemma(lemma)
                 .rank(rank).build();
 
-        DatabaseWorker.saveAndDetach(index1, indexRepository, entityManager);
-        DatabaseWorker.saveAndDetach(index2, indexRepository, entityManager);
-        DatabaseWorker.saveAndDetach(index3, indexRepository, entityManager);
+        DbHelper.saveAndDetach(index1, indexRepository, entityManager);
+        DbHelper.saveAndDetach(index2, indexRepository, entityManager);
+        DbHelper.saveAndDetach(index3, indexRepository, entityManager);
 
         List<IndexEntity> resultEntities = indexRepository.findByPage(page);
         assertEquals(2, resultEntities.size());
@@ -125,23 +125,23 @@ class IndexRepositoryTest extends TestContainer {
     @Test
     @DisplayName("Find Indexes by pages and lemmas")
     public void findByPageInAndLemmaIn()  {
-        SiteEntity site = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
-        SiteEntity site2 = DatabaseWorker.newSiteEntityFromDb(siteRepository, entityManager);
-        LemmaEntity lemma = DatabaseWorker.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
-        LemmaEntity lemma2 = DatabaseWorker.newLemmaEntityFromDb(site, "добрая белка", 1, lemmaRepository, entityManager);
-        LemmaEntity lemma3 = DatabaseWorker.newLemmaEntityFromDb(site2, "нейтральная белка", 1, lemmaRepository, entityManager);
+        SiteEntity site = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        SiteEntity site2 = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        LemmaEntity lemma = DbHelper.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma2 = DbHelper.newLemmaEntityFromDb(site, "добрая белка", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma3 = DbHelper.newLemmaEntityFromDb(site2, "нейтральная белка", 1, lemmaRepository, entityManager);
 
-        PageEntity page1 = DatabaseWorker.newPageEntityFromDb(site, "/hello", pageRepository, entityManager);
-        PageEntity page2 = DatabaseWorker.newPageEntityFromDb(site, "/hello/kitty", pageRepository, entityManager);
-        PageEntity page3 = DatabaseWorker.newPageEntityFromDb(site, "/hello/frog", pageRepository, entityManager);
-        PageEntity page4 = DatabaseWorker.newPageEntityFromDb(site2, "/hello/pig", pageRepository, entityManager);
+        PageEntity page1 = DbHelper.newPageEntityFromDb(site, "/hello", pageRepository, entityManager);
+        PageEntity page2 = DbHelper.newPageEntityFromDb(site, "/hello/kitty", pageRepository, entityManager);
+        PageEntity page3 = DbHelper.newPageEntityFromDb(site, "/hello/frog", pageRepository, entityManager);
+        PageEntity page4 = DbHelper.newPageEntityFromDb(site2, "/hello/pig", pageRepository, entityManager);
 
-        DatabaseWorker.newIndexEntityFromDb(page1, lemma, indexRepository, entityManager);
-        DatabaseWorker.newIndexEntityFromDb(page2, lemma, indexRepository, entityManager);
-        DatabaseWorker.newIndexEntityFromDb(page2, lemma2, indexRepository, entityManager);
-        DatabaseWorker.newIndexEntityFromDb(page2, lemma3, indexRepository, entityManager);
-        DatabaseWorker.newIndexEntityFromDb(page3, lemma, indexRepository, entityManager);
-        DatabaseWorker.newIndexEntityFromDb(page4, lemma3, indexRepository, entityManager);
+        DbHelper.newIndexEntityFromDb(page1, lemma, indexRepository, entityManager);
+        DbHelper.newIndexEntityFromDb(page2, lemma, indexRepository, entityManager);
+        DbHelper.newIndexEntityFromDb(page2, lemma2, indexRepository, entityManager);
+        DbHelper.newIndexEntityFromDb(page2, lemma3, indexRepository, entityManager);
+        DbHelper.newIndexEntityFromDb(page3, lemma, indexRepository, entityManager);
+        DbHelper.newIndexEntityFromDb(page4, lemma3, indexRepository, entityManager);
 
         List<PageEntity> pages = new ArrayList<>();
         pages.add(page1);
