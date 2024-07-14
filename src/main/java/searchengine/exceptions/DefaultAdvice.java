@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import searchengine.dto.indexing.IndexingResponseError;
+import searchengine.dto.searching.SearchResponseError;
 
 @ControllerAdvice
 public class DefaultAdvice {
@@ -21,5 +22,15 @@ public class DefaultAdvice {
     @ExceptionHandler(PageDoesNotBelongToTheListedSites.class)
     public ResponseEntity<IndexingResponseError> handlePageDoesNotBelongToTheListedSites(PageDoesNotBelongToTheListedSites e) {
         return new ResponseEntity<>(new IndexingResponseError(false, e.getMessage()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(ParsingQueryException.class)
+    public ResponseEntity<SearchResponseError> handleParsingQueryException(ParsingQueryException e) {
+        return new ResponseEntity<>(new SearchResponseError(false, e.getMessage()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(SiteNotFoundException.class)
+    public ResponseEntity<SearchResponseError> handleSiteNotFoundException(SiteNotFoundException e) {
+        return new ResponseEntity<>(new SearchResponseError(false, e.getMessage()), HttpStatus.OK);
     }
 }

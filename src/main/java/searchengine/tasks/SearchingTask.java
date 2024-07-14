@@ -38,7 +38,7 @@ public class SearchingTask implements Runnable {
 
     @Override
     public void run() {
-        List<LemmaEntity> lemmaEntities = manager.getLemmaEntities(lemmasInText); //можно вынести на уровень раньше
+        List<LemmaEntity> lemmaEntities = manager.getLemmaEntities(lemmasInText);
         if (lemmaEntities.isEmpty() || lemmaEntities.size() < 2) {
             return;
         }
@@ -50,27 +50,33 @@ public class SearchingTask implements Runnable {
         if (indexEntities.isEmpty()) {
             return;
         }
-        startChildThreads(manager, indexEntities);
+        startChildTasks(manager, indexEntities);
         manager.calculateRelativeRelevance();
     }
 
-    private void startChildThreads(SearchManager manager, List<IndexEntity> indexes) {
-        Integer pageId = indexes.get(0).getPage().getId();
-        Integer currentId = pageId;
-
+    private void startChildTasks(SearchManager manager, List<IndexEntity> indexes) {
+        int pageId = indexes.get(0).getPage().getId();
         List<IndexEntity> indexesForTask = new ArrayList<>();
-        for (IndexEntity entity : indexes) {
-            currentId = entity.getPage().getId();
-            if (Objects.equals(currentId, pageId)) {
-                indexesForTask.add(entity);
+
+        for (IndexEntity index : indexes) {
+            int currentId = index.getPage().getId();
+            if (currentId == pageId) {
+                indexesForTask.add(index);
             } else {
+                startTask(manager, indexesForTask);
                 pageId = currentId;
-                CollectTask task = new CollectTask(manager, indexesForTask);
-                task.start();
-                children.add(task);
                 indexesForTask = new ArrayList<>();
             }
         }
+        if (!indexesForTask.isEmpty()) {
+            startTask(manager, indexesForTask);
+        }
         children.forEach(CollectTask::join);
+    }
+
+    private void startTask(SearchManager manager, List<IndexEntity> indexes) {
+        CollectTask task = new CollectTask(manager, indexes);
+        task.start();
+        children.add(task);
     }
 }

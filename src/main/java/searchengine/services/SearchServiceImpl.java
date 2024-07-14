@@ -6,6 +6,8 @@ import searchengine.components.*;
 import searchengine.dto.searching.PageData;
 import searchengine.dto.searching.SearchRequest;
 import searchengine.dto.searching.SearchResponse;
+import searchengine.exceptions.ParsingQueryException;
+import searchengine.exceptions.SiteNotFoundException;
 import searchengine.managers.SearchManager;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
@@ -26,16 +28,16 @@ public class SearchServiceImpl implements SearchService {
     private final LemmaSearch lemmaSearch;
     private final JsoupWorker jsoupWorker;
     private final TextWorker textWorker;
-    private final List<SearchingTask> tasks = new ArrayList<>();
 
     @Override
     public SearchResponse search(SearchRequest request) {
         Map<String, Integer> lemmas = getLemmasInText(request.query());
         if (lemmas.isEmpty()) {
-            return null; //леммы не найденны
+            throw new ParsingQueryException("Не удалось получить леммы из текста запроса.");
         } else if (lemmas.size() < 2) {
-            return null; //найденно мало лемм (1)
+            throw new ParsingQueryException("Количество распознанных лемм меньше двух");
         }
+
         List<SiteEntity> sites = new ArrayList<>();
         if (request.site() == null) {
             sites.addAll(database.sites());
@@ -43,8 +45,24 @@ public class SearchServiceImpl implements SearchService {
             sites.add(database.sites(request.site()));
         }
         if (sites.isEmpty()) {
-            return null; //exception
+            throw new SiteNotFoundException();
         }
+
+        List<SearchingTask> tasks = new ArrayList<>();
+        search(sites, lemmas, tasks);
+        return prepareResponse(tasks);
+    }
+
+    private Map<String, Integer> getLemmasInText(String text) {
+        try {
+            textWorker.init();
+        } catch (IOException e) {
+            throw new ParsingQueryException("Невозможно инициализировать TextWorker.");
+        }
+        return textWorker.lemmas(text);
+    }
+
+    private void search(List<SiteEntity> sites, Map<String, Integer> lemmas, List<SearchingTask> tasks) {
         for (SiteEntity site : sites) {
             SearchManager manager = new SearchManager(
                     site, lemmaSearch, pageRepository, indexRepository, jsoupWorker, textWorker);
@@ -53,19 +71,9 @@ public class SearchServiceImpl implements SearchService {
             tasks.add(task);
         }
         tasks.forEach(SearchingTask::join);
-        return prepareResponse();
     }
 
-    private Map<String, Integer> getLemmasInText(String text) {
-        try {
-            textWorker.init();
-        } catch (IOException e) {
-            e.getMessage(); /* возврат исключения */
-        }
-        return textWorker.lemmas(text);
-    }
-
-    private SearchResponse prepareResponse() {
+    private SearchResponse prepareResponse(List<SearchingTask> tasks) {
         int count = 0;
         List<PageData> allData = new ArrayList<>();
         for (SearchingTask task : tasks) {
