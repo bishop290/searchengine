@@ -2,11 +2,15 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.components.*;
+import searchengine.components.Database;
+import searchengine.components.JsoupWorker;
+import searchengine.components.LemmaSearch;
+import searchengine.components.TextWorker;
 import searchengine.dto.searching.PageData;
 import searchengine.dto.searching.SearchRequest;
 import searchengine.dto.searching.SearchResponse;
 import searchengine.exceptions.ParsingQueryException;
+import searchengine.exceptions.SearchingTextWorkerException;
 import searchengine.exceptions.SiteNotFoundException;
 import searchengine.managers.SearchManager;
 import searchengine.model.SiteEntity;
@@ -57,7 +61,7 @@ public class SearchServiceImpl implements SearchService {
         try {
             textWorker.init();
         } catch (IOException e) {
-            throw new ParsingQueryException("Невозможно инициализировать TextWorker.");
+            throw new SearchingTextWorkerException();
         }
         return textWorker.lemmas(text);
     }

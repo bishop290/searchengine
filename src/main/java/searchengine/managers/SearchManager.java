@@ -1,6 +1,5 @@
 package searchengine.managers;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import searchengine.comparators.PageDataComparator;
 import searchengine.components.JsoupWorker;

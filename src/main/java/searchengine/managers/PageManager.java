@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import searchengine.components.Database;
 import searchengine.components.JsoupWorker;
 import searchengine.components.TextWorker;
+import searchengine.exceptions.IndexingTextWorkerException;
 import searchengine.model.*;
 import searchengine.tasks.WritingTask;
 
@@ -37,7 +38,7 @@ public class PageManager {
         try {
             textWorker.init();
         } catch (IOException e) {
-            return false;
+            throw new IndexingTextWorkerException();
         }
         return true;
     }

@@ -9,14 +9,19 @@ import searchengine.dto.searching.SearchResponseError;
 
 @ControllerAdvice
 public class DefaultAdvice {
+    @ExceptionHandler(IndexingIsNotRunningException.class)
+    public ResponseEntity<IndexingResponseError> handleIndexingIsNotRunningException(IndexingIsNotRunningException e) {
+        return new ResponseEntity<>(new IndexingResponseError(false, e.getMessage()), HttpStatus.OK);
+    }
+
     @ExceptionHandler(IndexingIsAlreadyRunningException.class)
     public ResponseEntity<IndexingResponseError> handleIndexingIsAlreadyRunningException(IndexingIsAlreadyRunningException e) {
         return new ResponseEntity<>(new IndexingResponseError(false, e.getMessage()), HttpStatus.OK);
     }
 
-    @ExceptionHandler(IndexingIsNotRunningException.class)
-    public ResponseEntity<IndexingResponseError> handleIndexingIsNotRunningException(IndexingIsNotRunningException e) {
-        return new ResponseEntity<>(new IndexingResponseError(false, e.getMessage()), HttpStatus.OK);
+    @ExceptionHandler(IndexingTextWorkerException.class)
+    public ResponseEntity<IndexingResponseError> handleIndexingTextWorkerException(IndexingTextWorkerException e) {
+        return new ResponseEntity<>(new IndexingResponseError(false, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(PageDoesNotBelongToTheListedSites.class)
@@ -32,5 +37,15 @@ public class DefaultAdvice {
     @ExceptionHandler(SiteNotFoundException.class)
     public ResponseEntity<SearchResponseError> handleSiteNotFoundException(SiteNotFoundException e) {
         return new ResponseEntity<>(new SearchResponseError(false, e.getMessage()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(SearchingException.class)
+    public ResponseEntity<SearchResponseError> handleSearchingException(SearchingException e) {
+        return new ResponseEntity<>(new SearchResponseError(false, e.getMessage()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(SearchingTextWorkerException.class)
+    public ResponseEntity<SearchResponseError> handleSearchingTextWorkerException(SearchingTextWorkerException e) {
+        return new ResponseEntity<>(new SearchResponseError(false, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
