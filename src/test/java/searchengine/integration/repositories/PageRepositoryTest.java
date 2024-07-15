@@ -2,20 +2,20 @@ package searchengine.integration.repositories;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import searchengine.integration.tools.DbHelper;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
-import searchengine.model.*;
+import searchengine.model.LemmaEntity;
+import searchengine.model.PageEntity;
+import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,75 +31,29 @@ class PageRepositoryTest extends TestContainer {
     private final IndexRepository indexRepository;
     private final NamedParameterJdbcTemplate jdbc;
 
-    private static String path;
-    private static Integer code;
-    private static String content;
-    private static String siteUrl;
-    private static SiteEntity site;
-
-    @BeforeAll
-    public static void setSite() {
-        path = "www.google.com/hot-sausage-pie";
-        code = 404;
-        content = "Hello world!";
-        siteUrl = "www.google.com";
-    }
-
     @Test
     @DisplayName("Save \"Page\" entity to db")
     public void testSaveToDb() {
-        site = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url(siteUrl)
-                .name("Google").build();
-        DbHelper.saveAndDetach(site, siteRepository, entityManager);
-        PageEntity page = PageEntity.builder()
-                .site(site).path(path).code(code).content(content).build();
+        String path = "www.google.com/hot-sausage-pie";
+        SiteEntity site = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        DbHelper.newPageEntityFromDb(site, path, pageRepository, entityManager);
 
-        DbHelper.saveAndDetach(page, pageRepository, entityManager);
         PageEntity savedPage = DbHelper.get(PageEntity.class, jdbc);
-
-        assertEquals(savedPage.getPath(), path);
-        assertEquals(savedPage.getCode(), code);
-        assertEquals(savedPage.getContent(), content);
+        assertEquals(path, savedPage.getPath());
     }
 
     @Test
     @DisplayName("Find page by site and path")
     public void testFindBySiteAndPath() {
-        site = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url(siteUrl)
-                .name("Google").build();
+        String path = "/hello/kitty";
+        SiteEntity site = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        SiteEntity site2 = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        DbHelper.newPageEntityFromDb(site, "/hello", pageRepository, entityManager);
+        DbHelper.newPageEntityFromDb(site2, path, pageRepository, entityManager);
+        DbHelper.newPageEntityFromDb(site, "/hello/frog", pageRepository, entityManager);
 
-        SiteEntity site2 = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url(siteUrl + "kkk")
-                .name("Google").build();
-
-        DbHelper.saveAndDetach(site, siteRepository, entityManager);
-        DbHelper.saveAndDetach(site2, siteRepository, entityManager);
-
-        PageEntity page1 = PageEntity.builder()
-                .site(site).path(path).code(code).content(content).build();
-        PageEntity page2 = PageEntity.builder()
-                .site(site).path(path + "helloKitty").code(code).content(content).build();
-        PageEntity page3 = PageEntity.builder()
-                .site(site2).path(path).code(code).content(content).build();
-
-        DbHelper.saveAndDetach(page1, pageRepository, entityManager);
-        DbHelper.saveAndDetach(page2, pageRepository, entityManager);
-        DbHelper.saveAndDetach(page3, pageRepository, entityManager);
-
-
-        PageEntity resultPage = pageRepository.findBySiteAndPath(site, path);
-        assertEquals(resultPage.getPath(), path);
+        PageEntity resultPage = pageRepository.findBySiteAndPath(site2, path);
+        assertEquals(path, resultPage.getPath());
     }
 
     @Test

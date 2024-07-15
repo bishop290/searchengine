@@ -61,37 +61,11 @@ class SiteRepositoryTest extends TestContainer {
     @Test
     @DisplayName("Remove the site with all dependencies")
     public void testDeleteAll() {
-        SiteEntity site = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url("www.google.com")
-                .name("Google").build();
-
-        PageEntity firstPage = PageEntity.builder()
-                .site(site).path("www.google.com/hot-sausage-pie")
-                .code(404).content("Hello world!").build();
-        PageEntity secondPage = PageEntity.builder()
-                .site(site).path("www.google.com/cat-care")
-                .code(500).content("Привет мир!").build();
-
-        LemmaEntity lemma = LemmaEntity.builder()
-                .site(site)
-                .lemma("lemma")
-                .frequency(1)
-                .build();
-
-        IndexEntity index = IndexEntity.builder()
-                .lemma(lemma)
-                .page(firstPage)
-                .rank(3)
-                .build();
-
-        DbHelper.saveAndDetach(site, siteRepository, entityManager);
-        DbHelper.saveAndDetach(firstPage, pageRepository, entityManager);
-        DbHelper.saveAndDetach(secondPage, pageRepository, entityManager);
-        DbHelper.saveAndDetach(lemma, lemmaRepository, entityManager);
-        DbHelper.saveAndDetach(index, indexRepository, entityManager);
+        SiteEntity site = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        PageEntity page1 = DbHelper.newPageEntityFromDb(site, "/hello", pageRepository, entityManager);
+        DbHelper.newPageEntityFromDb(site, "/hello/kitty", pageRepository, entityManager);
+        LemmaEntity lemma = DbHelper.newLemmaEntityFromDb(site, "злая белка", 1, lemmaRepository, entityManager);
+        DbHelper.newIndexEntityFromDb(page1, lemma, indexRepository, entityManager);
 
         List<SiteEntity> entities = new ArrayList<>();
         entities.add(site);

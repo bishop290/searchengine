@@ -8,6 +8,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import searchengine.components.Database;
+import searchengine.config.Site;
+import searchengine.config.SitesList;
 import searchengine.integration.tools.DbHelper;
 import searchengine.integration.tools.IntegrationTest;
 import searchengine.integration.tools.TestContainer;
@@ -17,7 +20,6 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,41 +38,33 @@ class DatabaseTest extends TestContainer {
     private final PageRepository pageRepository;
     private final IndexRepository indexRepository;
     private final NamedParameterJdbcTemplate jdbc;
-    private searchengine.components.Database database;
+    private Database database;
     private final JdbcTemplate jdbcTemplate;
-
+    private static SitesList sitesList;
     private final EntityManager entityManager;
-
-    private static String path;
-    private static Integer code;
-    private static String content;
-    private static String siteUrl;
-    private static SiteEntity site;
 
     @BeforeAll
     public static void setSite() {
-        path = "www.google.com/hot-sausage-pie";
-        code = 404;
-        content = "Hello world!";
-        siteUrl = "www.google.com";
+        int numberOfSites = 4;
+        List<Site> sites = new ArrayList<>();
+        for (int i = 0; i < numberOfSites; i++) {
+            sites.add(Site.builder().url("www.google.com" + i).name("Google" + i).build());
+        }
+        sitesList = new SitesList();
+        sitesList.setSites(sites);
     }
 
     @BeforeEach
     public void init() {
-        database = new searchengine.components.Database(siteRepository, lemmaRepository, pageRepository, indexRepository, jdbcTemplate);
+        database = new Database(siteRepository, lemmaRepository, pageRepository, indexRepository, jdbcTemplate);
     }
 
     @Test
     @DisplayName("Site update")
     void testSiteUpdate() {
-        String lastError = "";
-        site = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url(siteUrl)
-                .name("Google").build();
-        DbHelper.saveAndDetach(site, siteRepository, entityManager);
+        String lastError = "last error";
+        SiteEntity site = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+
         database.siteUpdate(site, Status.INDEXED, lastError);
         SiteEntity savedSite = DbHelper.get(SiteEntity.class, namedJdbc);
 
@@ -82,51 +76,16 @@ class DatabaseTest extends TestContainer {
     @Test
     @DisplayName("Delete Page")
     void testDeletePage() {
-        SiteEntity site = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url(siteUrl)
-                .name("Google").build();
-        DbHelper.saveAndDetach(site, siteRepository, entityManager);
-
-        PageEntity page = PageEntity.builder()
-                .site(site)
-                .path(path)
-                .code(200)
-                .content("Hello world").build();
-        DbHelper.saveAndDetach(page, pageRepository, entityManager);
-
+        String path = "/google/moogle";
         int frequency = 10;
-        LemmaEntity lemma = LemmaEntity.builder()
-                .site(site)
-                .lemma("ягуар")
-                .frequency(frequency)
-                .build();
-        DbHelper.saveAndDetach(lemma, lemmaRepository, entityManager);
-
-        LemmaEntity lemma2 = LemmaEntity.builder()
-                .site(site)
-                .lemma("ягуар")
-                .frequency(1)
-                .build();
-        DbHelper.saveAndDetach(lemma2, lemmaRepository, entityManager);
-
-        float rank = 0.1f;
-        IndexEntity index = IndexEntity.builder()
-                .page(page)
-                .lemma(lemma)
-                .rank(rank).build();
-        DbHelper.saveAndDetach(index, indexRepository, entityManager);
-
-        IndexEntity index2 = IndexEntity.builder()
-                .page(page)
-                .lemma(lemma2)
-                .rank(rank).build();
-        DbHelper.saveAndDetach(index2, indexRepository, entityManager);
+        SiteEntity site = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        PageEntity page = DbHelper.newPageEntityFromDb(site, path, pageRepository, entityManager);
+        LemmaEntity lemma = DbHelper.newLemmaEntityFromDb(site, "ягуар", frequency, lemmaRepository, entityManager);
+        LemmaEntity lemma2 = DbHelper.newLemmaEntityFromDb(site, "ягуар", 1, lemmaRepository, entityManager);
+        IndexEntity index = DbHelper.newIndexEntityFromDb(page, lemma, indexRepository, entityManager);
+        IndexEntity index2 = DbHelper.newIndexEntityFromDb(page, lemma2, indexRepository, entityManager);
 
         PageEntity newPage = pageRepository.findBySiteAndPath(site, path);
-
         database.removePage(newPage);
 
         assertEquals(1, DbHelper.count("site", jdbc));
@@ -141,53 +100,21 @@ class DatabaseTest extends TestContainer {
     @Test
     @DisplayName("Update lemmas")
     void testUpdateLemmas() {
-        SiteEntity site = SiteEntity.builder()
-                .status(Status.INDEXING)
-                .statusTime(new Timestamp(System.currentTimeMillis()))
-                .lastError("This is last error")
-                .url(siteUrl)
-                .name("Google").build();
-        DbHelper.saveAndDetach(site, siteRepository, entityManager);
-
+        SiteEntity site = DbHelper.newSiteEntityFromDb(siteRepository, entityManager);
+        LemmaEntity lemma1 = DbHelper.newLemmaEntityFromDb(site, "ягуар1", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma2 = DbHelper.newLemmaEntityFromDb(site, "ягуар2", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma3 = DbHelper.newLemmaEntityFromDb(site, "ягуар3", 1, lemmaRepository, entityManager);
+        LemmaEntity lemma4 = DbHelper.newLemmaEntityFromDb(site, "ягуар4", 1, lemmaRepository, entityManager);
+        lemma1.setFrequency(3);
+        lemma2.setFrequency(3);
+        lemma3.setFrequency(3);
+        lemma4.setFrequency(3);
         List<LemmaEntity> lemmas = new ArrayList<>();
-        LemmaEntity lem1 = LemmaEntity.builder()
-                .site(site)
-                .lemma("ягуар1")
-                .frequency(1)
-                .build();
-        DbHelper.saveAndDetach(lem1, lemmaRepository, entityManager);
-
-        LemmaEntity lem2 = LemmaEntity.builder()
-                .site(site)
-                .lemma("ягуар2")
-                .frequency(1)
-                .build();
-        DbHelper.saveAndDetach(lem2, lemmaRepository, entityManager);
-
-        LemmaEntity lem3 = LemmaEntity.builder()
-                .site(site)
-                .lemma("ягуар3")
-                .frequency(1)
-                .build();
-        DbHelper.saveAndDetach(lem3, lemmaRepository, entityManager);
-
-        LemmaEntity lem4 = LemmaEntity.builder()
-                .site(site)
-                .lemma("ягуар4")
-                .frequency(1)
-                .build();
-        DbHelper.saveAndDetach(lem4, lemmaRepository, entityManager);
-        lem1.setFrequency(3);
-        lem2.setFrequency(3);
-        lem3.setFrequency(3);
-        lem4.setFrequency(3);
-        List<LemmaEntity> lem = new ArrayList<>();
-        lem.add(lem1);
-        lem.add(lem2);
-        lem.add(lem3);
-        lem.add(lem4);
-
-        //int[] res = database.updateLemmas(lem);
+        lemmas.add(lemma1);
+        lemmas.add(lemma2);
+        lemmas.add(lemma3);
+        lemmas.add(lemma4);
+        database.updateLemmas(lemmas);
         assertEquals(4, DbHelper.count("lemma", jdbc));
     }
 

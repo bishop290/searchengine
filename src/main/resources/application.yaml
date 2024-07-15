@@ -22,12 +22,8 @@ logging:
 
 indexing-settings:
   sites:
-    #- url: https://ipfran.ru
-    #  name: Институт прикладной физики им. А.В. Гапонова-Грехова
-    #- url: https://dombulgakova.ru
-    #  name: Дом Булгакова. Музей Театр
-    #- url: https://nikoartgallery.com
-    #  name: Галерея Никогосяна
+    - url:  http://www.playback.ru
+      name: playback.ru
     #- url: https://www.svetlovka.ru/
     #  name: Библиотека Светловка
     - url: https://sendel.ru/
