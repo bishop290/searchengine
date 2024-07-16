@@ -20,15 +20,14 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public StatisticsResponse getStatistics() {
         List<SiteStatistics> statistics = siteStatisticsRepository.findAll();
-        if (statistics == null) {
-            // исключение может быть
-            return StatisticsResponse.builder().build();
-        }
         return StatisticsResponse.builder().
                 result(true).statistics(generateData(statistics)).build();
     }
 
     private StatisticsData generateData(List<SiteStatistics> statistics) {
+        if (statistics == null) {
+            return StatisticsData.builder().total(new TotalStatistics()).detailed(new ArrayList<>()).build();
+        }
         TotalStatistics totalItem = new TotalStatistics();
         List<DetailedStatisticsItem> detailedItems = new ArrayList<>();
 
@@ -47,9 +46,6 @@ public class StatisticsServiceImpl implements StatisticsService {
             totalItem.setLemmas(totalItem.getLemmas() + site.getLemmas());
         }
         totalItem.setIndexing(true);
-        return StatisticsData.builder()
-                .total(totalItem)
-                .detailed(detailedItems)
-                .build();
+        return StatisticsData.builder().total(totalItem).detailed(detailedItems).build();
     }
 }

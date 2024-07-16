@@ -2,7 +2,11 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.components.*;
+import searchengine.components.Database;
+import searchengine.components.JsoupWorker;
+import searchengine.components.OnePageWorker;
+import searchengine.components.TextWorker;
+import searchengine.config.IndexingSettings;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.indexing.IndexingResponse;
@@ -22,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService { ;
     private final SitesList sites;
+    private final IndexingSettings settings;
     private final Database database;
     private final JsoupWorker jsoupWorker;
     private final TextWorker textWorker;
@@ -38,8 +43,7 @@ public class IndexingServiceImpl implements IndexingService { ;
         database.insertSites(newSites);
 
         for (SiteEntity site : database.sites()) {
-            Storage storage = new Storage();
-            PageManager manager = new PageManager(site, jsoupWorker, database, textWorker, storage);
+            PageManager manager = new PageManager(settings, site, jsoupWorker, database, textWorker);
             IndexingTask task = new IndexingTask(manager);
             task.start();
             tasks.add(task);

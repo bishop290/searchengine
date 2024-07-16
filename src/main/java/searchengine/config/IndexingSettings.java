@@ -6,18 +6,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
 
 @Getter
 @Setter
 @Component
-@Validated
-@ConfigurationProperties(prefix = "search-settings")
-public class SearchSettings {
+@ConfigurationProperties(prefix = "indexing-settings")
+public class IndexingSettings {
     @Min(1)
-    @Max(100)
-    private int frequencyLimitInPercentage;
-    @Min(100)
-    @Max(1000)
-    private int snippetSize;
+    @Max(10000)
+    Integer numberOfPagesToFormAnIndexAtATime;
 }

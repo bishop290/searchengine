@@ -11,7 +11,7 @@ import searchengine.model.PageEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.TreeSet;
 
 @RequiredArgsConstructor
 public class SearchingTask implements Runnable {
@@ -34,7 +34,7 @@ public class SearchingTask implements Runnable {
     }
 
     public List<PageData> data() {
-        return manager.pageData();
+        return manager.getData();
     }
 
     @Override
@@ -54,7 +54,6 @@ public class SearchingTask implements Runnable {
             throw new SearchingException("Не удалоась получить индексы для страниц.");
         }
         startChildTasks(manager, indexEntities);
-        manager.calculateRelativeRelevance();
     }
 
     private void startChildTasks(SearchManager manager, List<IndexEntity> indexes) {

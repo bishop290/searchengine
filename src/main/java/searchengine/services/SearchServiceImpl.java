@@ -2,6 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import searchengine.comparators.PageDataComparator;
 import searchengine.components.Database;
 import searchengine.components.JsoupWorker;
 import searchengine.components.LemmaSearch;
@@ -81,10 +82,21 @@ public class SearchServiceImpl implements SearchService {
         int count = 0;
         List<PageData> allData = new ArrayList<>();
         for (SearchingTask task : tasks) {
-            List<PageData> currentData = task.data();
-            count += currentData.size();
-            allData.addAll(currentData);
+            count += task.data().size();
+            allData.addAll(task.data());
         }
-        return new SearchResponse(true, count, allData);
+        if (allData.isEmpty()) {
+            return new SearchResponse(true, 0, new ArrayList<>());
+        }
+        return new SearchResponse(true, count, calculateRelativeRelevance(allData));
+    }
+
+    public List<PageData> calculateRelativeRelevance(List<PageData> data) {
+        data.sort(new PageDataComparator());
+        float maxRelevance = data.get(0).getRelevance();
+        for (PageData page : data) {
+            page.setRelevance(page.getRelevance() / maxRelevance);
+        }
+        return data;
     }
 }

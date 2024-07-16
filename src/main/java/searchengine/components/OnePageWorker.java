@@ -2,11 +2,11 @@ package searchengine.components;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import searchengine.config.IndexingSettings;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.managers.Creator;
 import searchengine.managers.PageManager;
-import searchengine.managers.Storage;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
@@ -21,6 +21,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class OnePageWorker {
+    private final IndexingSettings settings;
     private final Database database;
     private final JsoupWorker jsoupWorker;
     private final TextWorker textWorker;
@@ -57,8 +58,7 @@ public class OnePageWorker {
     }
 
     private void parseNewPage(String url, SiteEntity site) {
-        Storage storage = new Storage();
-        PageManager manager = new PageManager(site, jsoupWorker, database, textWorker, storage);
+        PageManager manager = new PageManager(settings, site, jsoupWorker, database, textWorker);
         ParsingTask task = new ParsingTask(url, manager);
         if (!task.parse()) {
             return;

@@ -1,28 +1,26 @@
 package searchengine.managers;
 
-import com.google.common.collect.Iterables;
 import lombok.RequiredArgsConstructor;
 import searchengine.components.Database;
 import searchengine.components.JsoupWorker;
 import searchengine.components.TextWorker;
+import searchengine.config.IndexingSettings;
 import searchengine.exceptions.IndexingTextWorkerException;
 import searchengine.model.*;
 import searchengine.tasks.WritingTask;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 public class PageManager {
+    private final IndexingSettings settings;
     private final SiteEntity site;
     private final JsoupWorker jsoupWorker;
     private final Database database;
     private final TextWorker textWorker;
-    private final Storage storage;
+    private final Storage storage = new Storage();
 
     private volatile boolean stopFlag = false;
 
@@ -102,7 +100,23 @@ public class PageManager {
     public Map<String, Integer> indexData(PageEntity page) { return storage.pageIndex(page.getPath()); }
 
     public void handleIndexes() {
-        Iterable<List<PageEntity>> pageSets = Iterables.partition(pages(), 100);
+        List<List<PageEntity>> pageSets = new ArrayList<>();
+        List<PageEntity> currentSet = new ArrayList<>();
+        int counter = 0;
+
+        for (PageEntity page : pages()) {
+            if (counter >= settings.getNumberOfPagesToFormAnIndexAtATime()) {
+                pageSets.add(currentSet);
+                currentSet = new ArrayList<>();
+                counter = 0;
+            }
+            currentSet.add(page);
+            counter++;
+        }
+        if (!currentSet.isEmpty()) {
+            pageSets.add(currentSet);
+        }
+
         for (List<PageEntity> set : pageSets) {
             writeIndexes(set);
         }

@@ -1,9 +1,11 @@
 package searchengine.components;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.WrongCharaterException;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.springframework.stereotype.Component;
+import searchengine.config.SearchSettings;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -13,10 +15,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
+@RequiredArgsConstructor
 public class TextWorker {
-    private static final List<String> EXCEPTIONS =
-            Arrays.asList("СОЮЗ", "МЕЖД", "ПРЕДЛ", "ЧАСТ");
+    private static final List<String> EXCEPTIONS = Arrays.asList("СОЮЗ", "МЕЖД", "ПРЕДЛ", "ЧАСТ");
+    private final SearchSettings searchSettings;
     private static LuceneMorphology rusMorphology;
+
 
     public void init() throws IOException {
         if (rusMorphology != null) {
@@ -125,17 +129,16 @@ public class TextWorker {
     }
 
     private List<String> breakTextOnSnippets(String text) {
-        int lengthOfSnippet = 300;
         text = text.replaceAll(System.lineSeparator(), "");
 
         List<String> snippets = new ArrayList<>();
-        for (int i = 0; i < text.length(); i += lengthOfSnippet) {
-            snippets.add(text.substring(i, Math.min(text.length(), i + lengthOfSnippet)));
+        for (int i = 0; i < text.length(); i += searchSettings.getSnippetSize()) {
+            snippets.add(text.substring(i, Math.min(text.length(), i + searchSettings.getSnippetSize())));
         }
         return snippets;
     }
 
     private void appendSnippet(StringBuilder builder, String text) {
-        builder.append("...").append(text).append("...").append(System.lineSeparator());
+        builder.append("...").append(text).append("...").append("<br><br>");
     }
 }

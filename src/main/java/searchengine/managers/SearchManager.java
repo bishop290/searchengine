@@ -1,5 +1,6 @@
 package searchengine.managers;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import searchengine.comparators.PageDataComparator;
 import searchengine.components.JsoupWorker;
@@ -23,8 +24,8 @@ public class SearchManager {
     private final IndexRepository indexRepository;
     private final JsoupWorker jsoupWorker;
     private final TextWorker textWorker;
-    private final PageDataComparator comparator = new PageDataComparator();
-    private final TreeSet<PageData> data = new TreeSet<>(comparator);
+    @Getter
+    private final List<PageData> data = new ArrayList<>();
 
     public String domain() {
         return site.getUrl();
@@ -49,27 +50,18 @@ public class SearchManager {
         data.setUri(page.getPath());
 
         PageText pageText = jsoupWorker.getTextFromHtml(page.getContent());
-        data.setTitle(pageText.title());
-
+        if (pageText.title().isEmpty()) {
+            data.setTitle("заголовок отсутствует");
+        } else {
+            data.setTitle(pageText.title());
+        }
         return installSnippetsAndAbsoluteRelevance(data, indexes, pageText.body());
     }
 
     public void saveData(PageData data) {
-        this.data.add(data);
-    }
-
-    public void calculateRelativeRelevance() {
-        if (data.isEmpty()) {
-            return;
+        if (data != null) {
+            this.data.add(data);
         }
-        float maxRelevance = data.first().getRelevance();
-        for (PageData page : data) {
-            page.setRelevance(page.getRelevance() / maxRelevance);
-        }
-    }
-
-    public List<PageData> pageData() {
-        return new ArrayList<>(data);
     }
 
     private PageData installSnippetsAndAbsoluteRelevance(PageData data, List<IndexEntity> indexes, String text) {
@@ -93,6 +85,9 @@ public class SearchManager {
         pattern.append(")");
 
         String snippets = textWorker.snippets(text, pattern.toString());
+        if (snippets.isEmpty()) {
+            return null;
+        }
 
         data.setRelevance(absoluteRelevance);
         data.setSnippet(setBold(snippets, allLemmas));

@@ -6,6 +6,7 @@ spring:
     url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
     username: searchengine
     password: OGI2Y2MxYmE2YzMyNjIx
+
   jpa:
     hibernate.ddl-auto: none
     show-sql: true
@@ -28,6 +29,7 @@ indexing-settings:
     #  name: Библиотека Светловка
     - url: https://sendel.ru/
       name: sendel
+  number-of-pages-to-form-an-index-at-a-time: 30
 
 jsoup-settings:
   agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36
@@ -35,4 +37,5 @@ jsoup-settings:
   delay: 1000
 
 search-settings:
-  frequency-limit-in-percentage: 40
+  frequency-limit-in-percentage: 100
+  snippet-size: 300

@@ -69,7 +69,7 @@ public class JsoupWorker {
 
     public PageText getTextFromHtml(String html) {
         Document document = Jsoup.parse(html);
-        return new PageText(document.title(), document.body().text());
+        return new PageText(document.title(), document.text());
     }
 
     private boolean isUrlValid(String url, String domain) {
