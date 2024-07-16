@@ -20,4 +20,10 @@ public class SearchSettings {
     @Min(100)
     @Max(1000)
     private int snippetSize;
+    @Min(10)
+    @Max(100000)
+    private int cleanCacheEveryNAdditions;
+    @Min(1)
+    @Max(100000)
+    private int weightThresholdForCleaning;
 }

@@ -39,3 +39,5 @@ jsoup-settings:
 search-settings:
   frequency-limit-in-percentage: 100
   snippet-size: 300
+  clean-cache-every-n-additions: 100
+  weight-threshold-for-cleaning: 50

@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import searchengine.components.TextWorker;
+import searchengine.config.SearchSettings;
 
 import java.io.IOException;
 import java.util.Map;
@@ -68,7 +69,7 @@ class TextWorkerTest {
 
     @BeforeEach
     void init()  {
-        worker = new TextWorker();
+        worker = new TextWorker(new SearchSettings());
     }
 
     public static Stream<Arguments> urlProvider() {

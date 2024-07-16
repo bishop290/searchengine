@@ -2,10 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.components.Database;
-import searchengine.components.JsoupWorker;
-import searchengine.components.OnePageWorker;
-import searchengine.components.TextWorker;
+import searchengine.components.*;
 import searchengine.config.IndexingSettings;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
@@ -15,7 +12,6 @@ import searchengine.exceptions.IndexingIsNotRunningException;
 import searchengine.exceptions.PageDoesNotBelongToTheListedSites;
 import searchengine.managers.Creator;
 import searchengine.managers.PageManager;
-import searchengine.managers.Storage;
 import searchengine.model.SiteEntity;
 import searchengine.tasks.IndexingTask;
 
@@ -31,10 +27,12 @@ public class IndexingServiceImpl implements IndexingService { ;
     private final JsoupWorker jsoupWorker;
     private final TextWorker textWorker;
     private final OnePageWorker onePageWorker;
+    private final SearchingCache cache;
     private final List<IndexingTask> tasks = new ArrayList<>();
 
     @Override
     public IndexingResponse start() {
+        cache.clear();
         if (tasks.stream().anyMatch(IndexingTask::isRunning)) {
             throw new IndexingIsAlreadyRunningException();
         }
@@ -62,6 +60,7 @@ public class IndexingServiceImpl implements IndexingService { ;
 
     @Override
     public IndexingResponse startOnePage(String url) {
+        cache.clear();
         url = textWorker.urlDecode(url);
         Site site = onePageWorker.findDomain(url, sites);
         if (site == null) {

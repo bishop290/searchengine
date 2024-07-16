@@ -3,10 +3,7 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import searchengine.comparators.PageDataComparator;
-import searchengine.components.Database;
-import searchengine.components.JsoupWorker;
-import searchengine.components.LemmaSearch;
-import searchengine.components.TextWorker;
+import searchengine.components.*;
 import searchengine.dto.searching.PageData;
 import searchengine.dto.searching.SearchRequest;
 import searchengine.dto.searching.SearchResponse;
@@ -33,9 +30,15 @@ public class SearchServiceImpl implements SearchService {
     private final LemmaSearch lemmaSearch;
     private final JsoupWorker jsoupWorker;
     private final TextWorker textWorker;
+    private final SearchingCache cache;
 
     @Override
     public SearchResponse search(SearchRequest request) {
+        SearchResponse quickResponse = getFromCache(request);
+        if (quickResponse != null) {
+            return quickResponse;
+        }
+
         Map<String, Integer> lemmas = getLemmasInText(request.query());
         if (lemmas.isEmpty()) {
             throw new ParsingQueryException("Не удалось получить леммы из текста запроса.");
@@ -55,7 +58,10 @@ public class SearchServiceImpl implements SearchService {
 
         List<SearchingTask> tasks = new ArrayList<>();
         search(sites, lemmas, tasks);
-        return prepareResponse(tasks);
+        SearchResponse response = prepareResponse(tasks);
+
+        addToCache(request, response);
+        return response;
     }
 
     private Map<String, Integer> getLemmasInText(String text) {
@@ -91,12 +97,32 @@ public class SearchServiceImpl implements SearchService {
         return new SearchResponse(true, count, calculateRelativeRelevance(allData));
     }
 
-    public List<PageData> calculateRelativeRelevance(List<PageData> data) {
+    private List<PageData> calculateRelativeRelevance(List<PageData> data) {
         data.sort(new PageDataComparator());
         float maxRelevance = data.get(0).getRelevance();
         for (PageData page : data) {
             page.setRelevance(page.getRelevance() / maxRelevance);
         }
         return data;
+    }
+
+    private void addToCache(SearchRequest request, SearchResponse response) {
+        String site = "All";
+        if (request.site() != null) {
+            site = request.site();
+        }
+        cache.add(site + request.query(), response);
+    }
+
+    private SearchResponse getFromCache(SearchRequest request) {
+        String site = "All";
+        if (request.site() != null) {
+            site = request.site();
+        }
+        String key = site + request.query();
+        if (cache.contains(key)) {
+            return cache.response(key);
+        }
+        return null;
     }
 }
