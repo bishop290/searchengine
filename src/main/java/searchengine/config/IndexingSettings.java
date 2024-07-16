@@ -14,5 +14,5 @@ import org.springframework.stereotype.Component;
 public class IndexingSettings {
     @Min(1)
     @Max(10000)
-    Integer numberOfPagesToFormAnIndexAtATime;
+    Integer numberOfPagesToIndexAtOneTime;
 }

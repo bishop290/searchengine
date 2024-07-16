@@ -19,7 +19,7 @@ class SearchingCacheTest {
     @BeforeEach
     void init() {
         settings = new SearchSettings();
-        settings.setCleanCacheEveryNAdditions(100);
+        settings.setCleanCacheEveryNHits(100);
         settings.setWeightThresholdForCleaning(100);
         cache = new SearchingCache(settings);
     }
@@ -66,7 +66,7 @@ class SearchingCacheTest {
     @Test
     @DisplayName("Check clear low weight")
     void clearLowWeight() {
-        settings.setCleanCacheEveryNAdditions(4);
+        settings.setCleanCacheEveryNHits(4);
         settings.setWeightThresholdForCleaning(1);
         cache.add("запрос", new SearchResponse(true, 5, new ArrayList<>()));
         cache.add("запрос", new SearchResponse(true, 5, new ArrayList<>()));

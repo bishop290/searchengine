@@ -22,7 +22,7 @@ public class SearchSettings {
     private int snippetSize;
     @Min(10)
     @Max(100000)
-    private int cleanCacheEveryNAdditions;
+    private int cleanCacheEveryNHits;
     @Min(1)
     @Max(100000)
     private int weightThresholdForCleaning;

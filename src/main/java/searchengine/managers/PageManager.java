@@ -105,7 +105,7 @@ public class PageManager {
         int counter = 0;
 
         for (PageEntity page : pages()) {
-            if (counter >= settings.getNumberOfPagesToFormAnIndexAtATime()) {
+            if (counter >= settings.getNumberOfPagesToIndexAtOneTime()) {
                 pageSets.add(currentSet);
                 currentSet = new ArrayList<>();
                 counter = 0;

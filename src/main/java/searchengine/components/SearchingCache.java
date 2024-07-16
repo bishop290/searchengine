@@ -48,7 +48,7 @@ public class SearchingCache {
     }
 
     private void clearLowWeight() {
-        if (counter >= settings.getCleanCacheEveryNAdditions()) {
+        if (counter >= settings.getCleanCacheEveryNHits()) {
             weight.forEach((k, v) -> {
                 if (v <= settings.getWeightThresholdForCleaning()) {
                     weight.remove(k);

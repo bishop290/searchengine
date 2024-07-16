@@ -25,11 +25,11 @@ indexing-settings:
   sites:
     - url:  http://www.playback.ru
       name: playback.ru
-    #- url: https://www.svetlovka.ru/
-    #  name: Библиотека Светловка
+    - url: https://www.svetlovka.ru/
+      name: Библиотека Светловка
     - url: https://sendel.ru/
       name: sendel
-  number-of-pages-to-form-an-index-at-a-time: 30
+  number-of-pages-to-index-at-one-time: 30
 
 jsoup-settings:
   agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36
@@ -39,5 +39,5 @@ jsoup-settings:
 search-settings:
   frequency-limit-in-percentage: 100
   snippet-size: 300
-  clean-cache-every-n-additions: 100
+  clean-cache-every-n-hits: 100
   weight-threshold-for-cleaning: 50
