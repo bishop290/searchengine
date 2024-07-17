@@ -9,7 +9,6 @@ import searchengine.managers.Storage;
 import searchengine.model.SiteEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @RequiredArgsConstructor
 @DisplayName("\"Storage\" unit test")

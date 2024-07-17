@@ -22,7 +22,8 @@ public class SearchingCache {
         clearLowWeight();
         if (weight.containsKey(request)) {
             Integer currentWeight = weight.get(request);
-            Integer newWeight = currentWeight == Integer.MAX_VALUE ? Integer.MAX_VALUE : currentWeight + 1;
+            Integer newWeight =
+                    currentWeight == Integer.MAX_VALUE ? Integer.MAX_VALUE : currentWeight + 1;
             weight.put(request, newWeight);
         } else {
             weight.put(request, 1);

@@ -26,4 +26,11 @@ public class SearchSettings {
     @Min(1)
     @Max(100000)
     private int weightThresholdForCleaning;
+
+    {
+        this.frequencyLimitInPercentage = 100;
+        this.snippetSize = 300;
+        this.cleanCacheEveryNHits = 100;
+        this.weightThresholdForCleaning = 50;
+    }
 }

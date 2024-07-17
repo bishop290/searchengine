@@ -11,7 +11,6 @@ import searchengine.model.PageEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 
 @RequiredArgsConstructor
 public class SearchingTask implements Runnable {
@@ -45,14 +44,18 @@ public class SearchingTask implements Runnable {
         } else if (lemmaEntities.size() < 2) {
             throw new SearchingException("Количество полученных лемм из базы данных меньше двух");
         }
+
         List<PageEntity> pageEntities = manager.findPagesForRareLemma(lemmaEntities.get(0));
         if (pageEntities.isEmpty()) {
             throw new SearchingException("Не удалось получить страницы для самой редкой леммы");
         }
-        List<IndexEntity> indexEntities = manager.findIndexesSortingByPages(pageEntities, lemmaEntities);
+
+        List<IndexEntity> indexEntities = manager.findIndexesSortingByPages(
+                pageEntities, lemmaEntities);
         if (indexEntities.isEmpty()) {
             throw new SearchingException("Не удалоась получить индексы для страниц.");
         }
+
         startChildTasks(manager, indexEntities);
     }
 

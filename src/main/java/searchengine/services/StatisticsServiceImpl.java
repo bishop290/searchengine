@@ -26,7 +26,8 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private StatisticsData generateData(List<SiteStatistics> statistics) {
         if (statistics == null) {
-            return StatisticsData.builder().total(new TotalStatistics()).detailed(new ArrayList<>()).build();
+            return StatisticsData.builder()
+                    .total(new TotalStatistics()).detailed(new ArrayList<>()).build();
         }
         TotalStatistics totalItem = new TotalStatistics();
         List<DetailedStatisticsItem> detailedItems = new ArrayList<>();

@@ -1,6 +1,5 @@
 package searchengine.dto.statistics;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data

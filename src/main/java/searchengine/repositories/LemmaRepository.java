@@ -1,7 +1,6 @@
 package searchengine.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import searchengine.config.Site;
 import searchengine.model.LemmaEntity;
 import searchengine.model.SiteEntity;
 

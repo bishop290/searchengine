@@ -15,4 +15,8 @@ public class IndexingSettings {
     @Min(1)
     @Max(10000)
     Integer numberOfPagesToIndexAtOneTime;
+
+    {
+        this.numberOfPagesToIndexAtOneTime = 50;
+    }
 }

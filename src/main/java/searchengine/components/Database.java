@@ -100,8 +100,12 @@ public class Database {
     }
 
     public void insertSites(List<SiteEntity> sites) {
+        String query = """
+                insert into `site` (`status`, `status_time`, `last_error`, `url`, `name`) 
+                values(?,?,?,?,?)
+                """;
         jdbcTemplate.batchUpdate(
-                "insert into `site` (`status`, `status_time`, `last_error`, `url`, `name`) values(?,?,?,?,?)",
+                query,
                 new BatchPreparedStatementSetter() {
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         ps.setString(1, sites.get(i).getStatus().toString());

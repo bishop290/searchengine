@@ -73,7 +73,8 @@ public class SearchServiceImpl implements SearchService {
         return textWorker.lemmas(text);
     }
 
-    private void search(List<SiteEntity> sites, Map<String, Integer> lemmas, List<SearchingTask> tasks) {
+    private void search(
+            List<SiteEntity> sites, Map<String, Integer> lemmas, List<SearchingTask> tasks) {
         for (SiteEntity site : sites) {
             SearchManager manager = new SearchManager(
                     site, lemmaSearch, pageRepository, indexRepository, jsoupWorker, textWorker);

@@ -71,7 +71,7 @@ public class TextWorker {
     }
 
     public String snippets(String text, String patternText) {
-        List<String> snippets = breakTextOnSnippets(text);
+        List<String> snippets = breakTextToSnippets(text);
         Pattern pattern = Pattern.compile(patternText);
         StringBuilder builder = new StringBuilder();
 
@@ -128,12 +128,13 @@ public class TextWorker {
         }
     }
 
-    private List<String> breakTextOnSnippets(String text) {
+    private List<String> breakTextToSnippets(String text) {
         text = text.replaceAll(System.lineSeparator(), "");
 
         List<String> snippets = new ArrayList<>();
-        for (int i = 0; i < text.length(); i += searchSettings.getSnippetSize()) {
-            snippets.add(text.substring(i, Math.min(text.length(), i + searchSettings.getSnippetSize())));
+        int snippetSize = searchSettings.getSnippetSize();
+        for (int i = 0; i < text.length(); i += snippetSize) {
+            snippets.add(text.substring(i, Math.min(text.length(), i + snippetSize)));
         }
         return snippets;
     }

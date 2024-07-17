@@ -21,7 +21,7 @@ import java.util.Set;
 @Getter
 @Component
 public class JsoupWorker {
-    private final static int MINIMAL_DELAY = 500;
+    private static final int MINIMAL_DELAY = 500;
     private final JsoupSettings jsoupSettings;
     private final Connection connection;
     private final int delay;

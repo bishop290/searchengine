@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Repository
 public interface PageRepository extends JpaRepository<PageEntity, Integer> {
-    String pagesByLemmaIdQuery = """
+    String PAGE_BY_LEMMA_ID_QUERY = """
             select * from `page`
             where `id` in
             (select `page_id` from `index`
@@ -21,6 +21,6 @@ public interface PageRepository extends JpaRepository<PageEntity, Integer> {
     Set<PageEntity> findBySite(SiteEntity site);
     PageEntity findBySiteAndPath(SiteEntity site, String path);
 
-    @Query(value = pagesByLemmaIdQuery, nativeQuery = true)
+    @Query(value = PAGE_BY_LEMMA_ID_QUERY, nativeQuery = true)
     List<PageEntity> findPagesByLemmaId(Integer id);
 }

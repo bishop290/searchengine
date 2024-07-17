@@ -2,7 +2,6 @@ package searchengine.managers;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import searchengine.comparators.PageDataComparator;
 import searchengine.components.JsoupWorker;
 import searchengine.components.LemmaSearch;
 import searchengine.components.TextWorker;
@@ -14,7 +13,10 @@ import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.PageRepository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class SearchManager {
@@ -39,7 +41,8 @@ public class SearchManager {
         return pageRepository.findPagesByLemmaId(lemma.getId());
     }
 
-    public List<IndexEntity> findIndexesSortingByPages(List<PageEntity> pages, List<LemmaEntity> lemmas) {
+    public List<IndexEntity> findIndexesSortingByPages(
+            List<PageEntity> pages, List<LemmaEntity> lemmas) {
         return indexRepository.findByPageInAndLemmaInOrderByPageIdAsc(pages, lemmas);
     }
 
@@ -64,7 +67,8 @@ public class SearchManager {
         }
     }
 
-    private PageData installSnippetsAndAbsoluteRelevance(PageData data, List<IndexEntity> indexes, String text) {
+    private PageData installSnippetsAndAbsoluteRelevance(
+            PageData data, List<IndexEntity> indexes, String text) {
         float absoluteRelevance = 0;
         List<String> allLemmas = new ArrayList<>();
         StringBuilder pattern = new StringBuilder();

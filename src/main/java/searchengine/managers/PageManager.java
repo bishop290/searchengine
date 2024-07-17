@@ -10,7 +10,10 @@ import searchengine.model.*;
 import searchengine.tasks.WritingTask;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
@@ -30,7 +33,9 @@ public class PageManager {
 
     public String domain() { return site.getUrl(); }
 
-    public boolean isDomain(String url) { return jsoupWorker.isDomain(url, site.getUrl()); }
+    public boolean isDomain(String url) {
+        return jsoupWorker.isDomain(url, site.getUrl());
+    }
 
     public boolean initTextService() {
         try {
@@ -63,9 +68,13 @@ public class PageManager {
 
     public JsoupData parse(String url) { return jsoupWorker.connect(url); }
 
-    public Map<String, Integer> createIndex(JsoupData data) { return textWorker.lemmas(data.document().text()); }
+    public Map<String, Integer> createIndex(JsoupData data) {
+        return textWorker.lemmas(data.document().text());
+    }
 
-    public List<String> links(JsoupData data) { return jsoupWorker.getLinks(data.document(), domain()); }
+    public List<String> links(JsoupData data) {
+        return jsoupWorker.getLinks(data.document(), domain());
+    }
 
     public boolean isNewUrl(String url) { return !storage.containsLink(url); }
 
@@ -84,7 +93,9 @@ public class PageManager {
 
     public void writeLemmas() { database.insertLemmas(storage.lemmas()); }
 
-    public void writeIndexes(Set<IndexEntity> indexes) { database.insertIndexes(new ArrayList<>(indexes)); }
+    public void writeIndexes(Set<IndexEntity> indexes) {
+        database.insertIndexes(new ArrayList<>(indexes));
+    }
 
     public void prepareStorage() {
         storage.getLinks().clear();
@@ -97,7 +108,9 @@ public class PageManager {
 
     public LemmaEntity lemma(String name) { return storage.lemmas(name); }
 
-    public Map<String, Integer> indexData(PageEntity page) { return storage.pageIndex(page.getPath()); }
+    public Map<String, Integer> indexData(PageEntity page) {
+        return storage.pageIndex(page.getPath());
+    }
 
     public void handleIndexes() {
         List<List<PageEntity>> pageSets = new ArrayList<>();

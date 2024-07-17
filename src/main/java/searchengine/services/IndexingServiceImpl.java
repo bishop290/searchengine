@@ -41,7 +41,8 @@ public class IndexingServiceImpl implements IndexingService { ;
         database.insertSites(newSites);
 
         for (SiteEntity site : database.sites()) {
-            PageManager manager = new PageManager(settings, site, jsoupWorker, database, textWorker);
+            PageManager manager = new PageManager(
+                    settings, site, jsoupWorker, database, textWorker);
             IndexingTask task = new IndexingTask(manager);
             task.start();
             tasks.add(task);

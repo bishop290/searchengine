@@ -23,10 +23,10 @@ logging:
 
 indexing-settings:
   sites:
-    - url:  http://www.playback.ru
-      name: playback.ru
-    - url: https://www.svetlovka.ru/
-      name: Библиотека Светловка
+    #- url:  http://www.playback.ru
+    #  name: playback.ru
+    #- url: https://www.svetlovka.ru/
+    #  name: Библиотека Светловка
     - url: https://sendel.ru/
       name: sendel
   number-of-pages-to-index-at-one-time: 30

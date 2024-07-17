@@ -2,8 +2,8 @@ package searchengine.components;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import searchengine.config.SearchSettings;
 import searchengine.comparators.LemmaComparator;
+import searchengine.config.SearchSettings;
 import searchengine.model.LemmaEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
