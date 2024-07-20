@@ -2,14 +2,15 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.comparators.PageDataComparator;
+import searchengine.comparators.PageSnippetsComparator;
 import searchengine.components.*;
-import searchengine.dto.searching.PageData;
+import searchengine.dto.searching.Snippet;
 import searchengine.dto.searching.SearchRequest;
 import searchengine.dto.searching.SearchResponse;
 import searchengine.exceptions.ParsingQueryException;
 import searchengine.exceptions.SearchingTextWorkerException;
 import searchengine.exceptions.SiteNotFoundException;
+import searchengine.managers.PageSnippets;
 import searchengine.managers.SearchManager;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
@@ -87,9 +88,9 @@ public class SearchServiceImpl implements SearchService {
 
     private SearchResponse prepareResponse(List<SearchingTask> tasks) {
         int count = 0;
-        List<PageData> allData = new ArrayList<>();
+        List<PageSnippets> allData = new ArrayList<>();
         for (SearchingTask task : tasks) {
-            count += task.data().size();
+            count += task.count();
             allData.addAll(task.data());
         }
         if (allData.isEmpty()) {
@@ -98,13 +99,16 @@ public class SearchServiceImpl implements SearchService {
         return new SearchResponse(true, count, calculateRelativeRelevance(allData));
     }
 
-    private List<PageData> calculateRelativeRelevance(List<PageData> data) {
-        data.sort(new PageDataComparator());
-        float maxRelevance = data.get(0).getRelevance();
-        for (PageData page : data) {
-            page.setRelevance(page.getRelevance() / maxRelevance);
+    private List<Snippet> calculateRelativeRelevance(List<PageSnippets> data) {
+        List<Snippet> snippets = new ArrayList<>();
+        data.sort(new PageSnippetsComparator());
+
+        float maxRelevance = data.get(0).getAbsoluteRelevance();
+        for (PageSnippets pageSnippets : data) {
+            pageSnippets.setRelativeRelevance(maxRelevance);
+            snippets.addAll(pageSnippets.getSnippets());
         }
-        return data;
+        return snippets;
     }
 
     private void addToCache(SearchRequest request, SearchResponse response) {

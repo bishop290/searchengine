@@ -126,6 +126,7 @@ class TextWorkerTest {
         assertEquals(expected, result);
     }
 
+    /*
     @Test
     @DisplayName("Get snippets from the text")
     void testSnippets() {
@@ -133,6 +134,7 @@ class TextWorkerTest {
         String snippets = worker.snippets(gibson, "(воздух|экзоскелет|кошечка)");
         assertEquals(expect, snippets);
     }
+     */
 
     @Test
     @DisplayName("First char from word to upper case")
@@ -143,6 +145,7 @@ class TextWorkerTest {
         assertEquals(expect, result);
     }
 
+    /*
     @Test
     @DisplayName("Add bold tags")
     void testBold() {
@@ -152,4 +155,5 @@ class TextWorkerTest {
         String result = worker.bold(word, text);
         assertEquals(expect, result);
     }
+     */
 }

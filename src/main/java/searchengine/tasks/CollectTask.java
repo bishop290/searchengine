@@ -1,7 +1,6 @@
 package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
-import searchengine.dto.searching.PageData;
 import searchengine.managers.SearchManager;
 import searchengine.model.IndexEntity;
 
@@ -31,7 +30,6 @@ public class CollectTask implements Runnable {
         if (indexes.isEmpty()) {
             return;
         }
-        PageData data = manager.collectPageData(new PageData(), indexes);
-        manager.saveData(data);
+        manager.saveData(manager.collectPageData(indexes));
     }
 }

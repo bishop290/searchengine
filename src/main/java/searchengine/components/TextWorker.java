@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
@@ -70,23 +68,15 @@ public class TextWorker {
         return new String(chars);
     }
 
-    public String snippets(String text, String patternText) {
-        List<String> snippets = breakTextToSnippets(text);
-        Pattern pattern = Pattern.compile(patternText);
-        StringBuilder builder = new StringBuilder();
+    public List<String> breakTextToSnippets(String text) {
+        text = text.replaceAll(System.lineSeparator(), "");
 
-        snippets.forEach(snippet -> {
-            Matcher matcher = pattern.matcher(snippet);
-            if (matcher.find()) {
-                appendSnippet(builder, snippet);
-            }
-        });
-        return builder.toString();
-    }
-
-    public String bold(String word, String text) {
-        String boldWord = String.format("<b>%s</b>", word);
-        return text.replaceAll(word, boldWord);
+        List<String> snippets = new ArrayList<>();
+        int snippetSize = searchSettings.getSnippetSize();
+        for (int i = 0; i < text.length(); i += snippetSize) {
+            snippets.add(text.substring(i, Math.min(text.length(), i + snippetSize)));
+        }
+        return snippets;
     }
 
     private String[] splitText(String text) {
@@ -126,20 +116,5 @@ public class TextWorker {
         } else {
             map.put(word, value + 1);
         }
-    }
-
-    private List<String> breakTextToSnippets(String text) {
-        text = text.replaceAll(System.lineSeparator(), "");
-
-        List<String> snippets = new ArrayList<>();
-        int snippetSize = searchSettings.getSnippetSize();
-        for (int i = 0; i < text.length(); i += snippetSize) {
-            snippets.add(text.substring(i, Math.min(text.length(), i + snippetSize)));
-        }
-        return snippets;
-    }
-
-    private void appendSnippet(StringBuilder builder, String text) {
-        builder.append("...").append(text).append("...").append("<br><br>");
     }
 }

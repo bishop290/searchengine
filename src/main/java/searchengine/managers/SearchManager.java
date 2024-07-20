@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import searchengine.components.JsoupWorker;
 import searchengine.components.LemmaSearch;
 import searchengine.components.TextWorker;
-import searchengine.dto.searching.PageData;
+import searchengine.dto.searching.Snippet;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class SearchManager {
@@ -27,7 +29,9 @@ public class SearchManager {
     private final JsoupWorker jsoupWorker;
     private final TextWorker textWorker;
     @Getter
-    private final List<PageData> data = new ArrayList<>();
+    private final List<PageSnippets> data = new ArrayList<>();
+    @Getter
+    private int count = 0;
 
     public String domain() {
         return site.getUrl();
@@ -46,56 +50,50 @@ public class SearchManager {
         return indexRepository.findByPageInAndLemmaInOrderByPageIdAsc(pages, lemmas);
     }
 
-    public PageData collectPageData(PageData data, List<IndexEntity> indexes) {
+    public PageSnippets collectPageData(List<IndexEntity> indexes) {
+        PageSnippets pageSnippets = new PageSnippets();
         PageEntity page = indexes.get(0).getPage();
-        data.setSite(site.getUrl());
-        data.setSiteName(site.getName());
-        data.setUri(page.getPath());
+        pageSnippets.setSite(site.getUrl());
+        pageSnippets.setSiteName(site.getName());
+        pageSnippets.setUri(page.getPath());
 
         PageText pageText = jsoupWorker.getTextFromHtml(page.getContent());
-        if (pageText.title().isEmpty()) {
-            data.setTitle("заголовок отсутствует");
-        } else {
-            data.setTitle(pageText.title());
-        }
-        return installSnippetsAndAbsoluteRelevance(data, indexes, pageText.body());
+        pageSnippets.setTitle(pageText.title());
+
+        return installSnippetsAndAbsoluteRelevance(pageSnippets, indexes, pageText.body());
     }
 
-    public void saveData(PageData data) {
-        if (data != null) {
-            this.data.add(data);
+    public void saveData(PageSnippets pageSnippets) {
+        if (pageSnippets != null) {
+            data.add(pageSnippets);
+            count += pageSnippets.snippetsSize();
         }
     }
 
-    private PageData installSnippetsAndAbsoluteRelevance(
-            PageData data, List<IndexEntity> indexes, String text) {
-        float absoluteRelevance = 0;
-        List<String> allLemmas = new ArrayList<>();
+    private PageSnippets installSnippetsAndAbsoluteRelevance(
+            PageSnippets pageSnippets, List<IndexEntity> indexes, String text) {
         StringBuilder pattern = new StringBuilder();
         boolean delimiterFlag = false;
 
         pattern.append("(");
         for (IndexEntity index : indexes) {
-            absoluteRelevance += index.getRank();
+            pageSnippets.setAbsoluteRelevance(index.getRank());
 
             String first = index.getLemma().getLemma();
             String second = textWorker.firstCharToUpperCase(first);
             String third = first.toUpperCase();
-            allLemmas.addAll(Arrays.asList(first, second, third));
+            pageSnippets.addLemmas(Arrays.asList(first, second, third));
 
             appendToPattern(pattern, first, second, third, delimiterFlag);
             delimiterFlag = true;
         }
         pattern.append(")");
 
-        String snippets = textWorker.snippets(text, pattern.toString());
-        if (snippets.isEmpty()) {
+        createSnippets(pageSnippets, text, pattern.toString());
+        if (pageSnippets.getSnippets().isEmpty()) {
             return null;
         }
-
-        data.setRelevance(absoluteRelevance);
-        data.setSnippet(setBold(snippets, allLemmas));
-        return data;
+        return pageSnippets;
     }
 
     private void appendToPattern(
@@ -108,10 +106,15 @@ public class SearchManager {
         builder.append(third);
     }
 
-    private String setBold(String text, List<String> lemmas) {
-        for (String lemma : lemmas) {
-            text = textWorker.bold(lemma, text);
-        }
-        return text;
+    public void createSnippets(PageSnippets pageSnippets, String text, String patternText) {
+        List<String> allSnippets = textWorker.breakTextToSnippets(text);
+        Pattern pattern = Pattern.compile(patternText);
+
+        allSnippets.forEach(snippet -> {
+            Matcher matcher = pattern.matcher(snippet);
+            if (matcher.find()) {
+                pageSnippets.addSnippet(snippet);
+            }
+        });
     }
 }

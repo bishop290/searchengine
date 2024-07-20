@@ -1,8 +1,9 @@
 package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
-import searchengine.dto.searching.PageData;
+import searchengine.dto.searching.Snippet;
 import searchengine.exceptions.SearchingException;
+import searchengine.managers.PageSnippets;
 import searchengine.managers.SearchManager;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
@@ -32,9 +33,9 @@ public class SearchingTask implements Runnable {
         }
     }
 
-    public List<PageData> data() {
-        return manager.getData();
-    }
+    public List<PageSnippets> data() { return manager.getData(); }
+
+    public int count() { return manager.getCount(); }
 
     @Override
     public void run() {
