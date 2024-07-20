@@ -45,6 +45,12 @@ public class DefaultAdvice {
                 new SearchResponseError(false, e.getMessage()), HttpStatus.OK);
     }
 
+    @ExceptionHandler(SiteIsNotIndexedException.class)
+    public ResponseEntity<SearchResponseError> handleSiteIsNotIndexedException(SiteIsNotIndexedException e) {
+        return new ResponseEntity<>(
+                new SearchResponseError(false, e.getMessage()), HttpStatus.OK);
+    }
+
     @ExceptionHandler(SearchingException.class)
     public ResponseEntity<SearchResponseError> handleSearchingException(SearchingException e) {
         return new ResponseEntity<>(

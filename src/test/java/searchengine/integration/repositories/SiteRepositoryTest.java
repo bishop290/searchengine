@@ -19,6 +19,7 @@ import searchengine.repositories.SiteRepository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -86,5 +87,31 @@ class SiteRepositoryTest extends TestContainer {
         assertEquals(0, DbHelper.count("page", jdbc));
         assertEquals(0, DbHelper.count("lemma", jdbc));
         assertEquals(0, DbHelper.count("index", jdbc));
+    }
+
+    @Test
+    @DisplayName("Find sites by statuses")
+    public void testFindByStatusIn() {
+        SiteEntity site1 = SiteEntity.builder()
+                .status(Status.INDEXING)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("").url("a").name("a").build();
+
+        SiteEntity site2 = SiteEntity.builder()
+                .status(Status.FAILED)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("").url("a").name("a").build();
+
+        SiteEntity site3 = SiteEntity.builder()
+                .status(Status.INDEXED)
+                .statusTime(new Timestamp(System.currentTimeMillis()))
+                .lastError("").url("a").name("a").build();
+
+        DbHelper.saveAndDetach(site1, siteRepository, entityManager);
+        DbHelper.saveAndDetach(site2, siteRepository, entityManager);
+        DbHelper.saveAndDetach(site3, siteRepository, entityManager);
+
+        List<SiteEntity> sites = siteRepository.findByStatusIn(Arrays.asList("INDEXING", "INDEXED"));
+        assertEquals(2, sites.size());
     }
 }

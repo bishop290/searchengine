@@ -9,16 +9,19 @@ import searchengine.dto.searching.SearchRequest;
 import searchengine.dto.searching.SearchResponse;
 import searchengine.exceptions.ParsingQueryException;
 import searchengine.exceptions.SearchingTextWorkerException;
+import searchengine.exceptions.SiteIsNotIndexedException;
 import searchengine.exceptions.SiteNotFoundException;
 import searchengine.managers.PageSnippets;
 import searchengine.managers.SearchManager;
 import searchengine.model.SiteEntity;
+import searchengine.model.Status;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.tasks.SearchingTask;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -40,22 +43,8 @@ public class SearchServiceImpl implements SearchService {
             return quickResponse;
         }
 
-        Map<String, Integer> lemmas = getLemmasInText(request.query());
-        if (lemmas.isEmpty()) {
-            throw new ParsingQueryException("Не удалось получить леммы из текста запроса.");
-        } else if (lemmas.size() < 2) {
-            throw new ParsingQueryException("Количество распознанных лемм меньше двух");
-        }
-
-        List<SiteEntity> sites = new ArrayList<>();
-        if (request.site() == null) {
-            sites.addAll(database.sites());
-        } else {
-            sites.add(database.sites(request.site()));
-        }
-        if (sites.isEmpty()) {
-            throw new SiteNotFoundException();
-        }
+        List<SiteEntity> sites = getSites(request);
+        Map<String, Integer> lemmas = getLemmas(request);
 
         List<SearchingTask> tasks = new ArrayList<>();
         search(sites, lemmas, tasks);
@@ -63,6 +52,34 @@ public class SearchServiceImpl implements SearchService {
 
         addToCache(request, response);
         return response;
+    }
+
+    private List<SiteEntity> getSites(SearchRequest request) {
+        List<SiteEntity> sites = new ArrayList<>();
+        if (request.site() == null) {
+            sites.addAll(database.sites(Arrays.asList("INDEXING", "INDEXED")));
+        } else {
+            sites.add(database.sites(request.site()));
+        }
+        if (sites.isEmpty()) {
+            throw new SiteNotFoundException();
+        }
+        boolean isNotIndexed = sites.stream().anyMatch(
+                site -> site.getStatus().equals(Status.INDEXING));
+        if (isNotIndexed) {
+            throw new SiteIsNotIndexedException();
+        }
+        return sites;
+    }
+
+    private Map<String, Integer> getLemmas(SearchRequest request) {
+        Map<String, Integer> lemmas = getLemmasInText(request.query());
+        if (lemmas.isEmpty()) {
+            throw new ParsingQueryException("Не удалось получить леммы из текста запроса.");
+        } else if (lemmas.size() < 2) {
+            throw new ParsingQueryException("Количество распознанных лемм меньше двух");
+        }
+        return lemmas;
     }
 
     private Map<String, Integer> getLemmasInText(String text) {

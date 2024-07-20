@@ -34,6 +34,10 @@ public class Database {
         return siteRepository.findAll();
     }
 
+    public List<SiteEntity> sites(List<String> statuses) {
+        return siteRepository.findByStatusIn(statuses);
+    }
+
     public SiteEntity sites(Site site) {
         return siteRepository.findByUrl(site.getUrl());
     }
@@ -41,6 +45,7 @@ public class Database {
     public SiteEntity sites(String url) {
         return siteRepository.findByUrl(url);
     }
+
 
     public SiteEntity createSite(Site site) {
         SiteEntity siteEntity = Creator.site(site);
