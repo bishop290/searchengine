@@ -5,12 +5,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import searchengine.components.SearchingCache;
 import searchengine.config.SearchSettings;
+import searchengine.dto.searching.SearchRequest;
 import searchengine.dto.searching.SearchResponse;
+import searchengine.dto.searching.Snippet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SearchingCacheTest {
     private SearchingCache cache;
@@ -26,37 +28,42 @@ class SearchingCacheTest {
 
     @Test
     @DisplayName("Add to cache")
-    void add() {
-        cache.add("запрос", new SearchResponse(true, 0, new ArrayList<>()));
+    void testAdd() {
+        cache.add(new SearchRequest("запрос", "сайт", 0, 10),
+                new SearchResponse(true, 0, new ArrayList<>()));
         assertEquals(1, cache.getWeight().size());
         assertEquals(1, cache.getData().size());
-        cache.add("запрос", new SearchResponse(true, 0, new ArrayList<>()));
+        cache.add(new SearchRequest("запрос", "сайт", 0, 10),
+                new SearchResponse(true, 0, new ArrayList<>()));
         assertEquals(1, cache.getWeight().size());
         assertEquals(1, cache.getData().size());
-        assertEquals(2, cache.getWeight().get("запрос"));
+        assertEquals(2, cache.getWeight().get("сайтзапрос"));
     }
 
     @Test
-    @DisplayName("Check contains data in cache")
-    void contains() {
-        cache.add("запрос", new SearchResponse(true, 0, new ArrayList<>()));
-        assertTrue(cache.contains("запрос"));
-    }
-
-    @Test
-    @DisplayName("Check response")
-    void response() {
-        cache.add("запрос", new SearchResponse(true, 5, new ArrayList<>()));
-        assertEquals(5, cache.response("запрос").count());
-        assertEquals(2, cache.getWeight().get("запрос"));
+    @DisplayName("Get snippets with limit and offset")
+    void testGet() {
+        Snippet snippet = Snippet.builder().build();
+        cache.add(new SearchRequest("запрос1", "сайт", 0, 2),
+                new SearchResponse(true, 5,
+                        Arrays.asList(snippet, snippet, snippet, snippet, snippet)));
+        SearchResponse response1 = cache.get(new SearchRequest("запрос1", "сайт", 0, 2));
+        SearchResponse response2 = cache.get(new SearchRequest("запрос1", "сайт", 2, 2));
+        SearchResponse response3 = cache.get(new SearchRequest("запрос1", "сайт", 4, 2));
+        assertEquals(2, response1.data().size());
+        assertEquals(2, response2.data().size());
+        assertEquals(1, response3.data().size());
     }
 
     @Test
     @DisplayName("Check clear")
-    void clear() {
-        cache.add("запрос", new SearchResponse(true, 5, new ArrayList<>()));
-        cache.add("запрос2", new SearchResponse(true, 5, new ArrayList<>()));
-        cache.add("запрос3", new SearchResponse(true, 5, new ArrayList<>()));
+    void testClear() {
+        cache.add(new SearchRequest("запрос1", "сайт", 0, 10),
+                new SearchResponse(true, 5, new ArrayList<>()));
+        cache.add(new SearchRequest("запрос2", "сайт", 0, 10),
+                new SearchResponse(true, 5, new ArrayList<>()));
+        cache.add(new SearchRequest("запрос3", "сайт", 0, 10),
+                new SearchResponse(true, 5, new ArrayList<>()));
         cache.clear();
         assertEquals(0, cache.getData().size());
         assertEquals(0, cache.getWeight().size());
@@ -65,14 +72,19 @@ class SearchingCacheTest {
 
     @Test
     @DisplayName("Check clear low weight")
-    void clearLowWeight() {
+    void testClearLowWeight() {
         settings.setCleanCacheEveryNHits(4);
         settings.setWeightThresholdForCleaning(1);
-        cache.add("запрос", new SearchResponse(true, 5, new ArrayList<>()));
-        cache.add("запрос", new SearchResponse(true, 5, new ArrayList<>()));
-        cache.add("запрос", new SearchResponse(true, 5, new ArrayList<>()));
-        cache.add("запрос2", new SearchResponse(true, 5, new ArrayList<>()));
-        cache.add("запрос3", new SearchResponse(true, 5, new ArrayList<>()));
+        cache.add(new SearchRequest("запрос1", "сайт", 0, 10),
+                new SearchResponse(true, 5, new ArrayList<>()));
+        cache.add(new SearchRequest("запрос2", "сайт", 0, 10),
+                new SearchResponse(true, 5, new ArrayList<>()));
+        cache.add(new SearchRequest("запрос2", "сайт", 0, 10),
+                new SearchResponse(true, 5, new ArrayList<>()));
+        cache.add(new SearchRequest("запрос4", "сайт", 0, 10),
+                new SearchResponse(true, 5, new ArrayList<>()));
+        cache.add(new SearchRequest("запрос5", "сайт", 0, 10),
+                new SearchResponse(true, 5, new ArrayList<>()));
         assertEquals(2, cache.getWeight().size());
         assertEquals(2, cache.getData().size());
     }

@@ -1,7 +1,6 @@
 package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
-import searchengine.dto.searching.Snippet;
 import searchengine.exceptions.SearchingException;
 import searchengine.managers.PageSnippets;
 import searchengine.managers.SearchManager;

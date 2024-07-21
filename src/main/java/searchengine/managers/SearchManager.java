@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import searchengine.components.JsoupWorker;
 import searchengine.components.LemmaSearch;
 import searchengine.components.TextWorker;
-import searchengine.dto.searching.Snippet;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
@@ -106,15 +105,15 @@ public class SearchManager {
         builder.append(third);
     }
 
-    public void createSnippets(PageSnippets pageSnippets, String text, String patternText) {
+    private void createSnippets(PageSnippets pageSnippets, String text, String patternText) {
         List<String> allSnippets = textWorker.breakTextToSnippets(text);
         Pattern pattern = Pattern.compile(patternText);
 
-        allSnippets.forEach(snippet -> {
+        for (String snippet : allSnippets) {
             Matcher matcher = pattern.matcher(snippet);
             if (matcher.find()) {
                 pageSnippets.addSnippet(snippet);
             }
-        });
+        }
     }
 }

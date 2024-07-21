@@ -22,7 +22,7 @@ public class PageSnippets {
     }
 
     public void addSnippet(String text) {
-        snippets.add(createSnippet(String.format("...%s...<br><br>", setBold(text))));
+        snippets.add(createSnippet(String.format("...%s...<br>", setBold(text))));
     }
 
     public int snippetsSize() {

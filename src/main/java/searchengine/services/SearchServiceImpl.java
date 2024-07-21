@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import searchengine.comparators.PageSnippetsComparator;
 import searchengine.components.*;
-import searchengine.dto.searching.Snippet;
 import searchengine.dto.searching.SearchRequest;
 import searchengine.dto.searching.SearchResponse;
+import searchengine.dto.searching.Snippet;
 import searchengine.exceptions.ParsingQueryException;
 import searchengine.exceptions.SearchingTextWorkerException;
 import searchengine.exceptions.SiteIsNotIndexedException;
@@ -38,11 +38,10 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public SearchResponse search(SearchRequest request) {
-        SearchResponse quickResponse = getFromCache(request);
+        SearchResponse quickResponse = cache.get(request);
         if (quickResponse != null) {
             return quickResponse;
         }
-
         List<SiteEntity> sites = getSites(request);
         Map<String, Integer> lemmas = getLemmas(request);
 
@@ -50,8 +49,8 @@ public class SearchServiceImpl implements SearchService {
         search(sites, lemmas, tasks);
         SearchResponse response = prepareResponse(tasks);
 
-        addToCache(request, response);
-        return response;
+        cache.add(request, response);
+        return cache.get(request);
     }
 
     private List<SiteEntity> getSites(SearchRequest request) {
@@ -110,9 +109,6 @@ public class SearchServiceImpl implements SearchService {
             count += task.count();
             allData.addAll(task.data());
         }
-        if (allData.isEmpty()) {
-            return new SearchResponse(true, 0, new ArrayList<>());
-        }
         return new SearchResponse(true, count, calculateRelativeRelevance(allData));
     }
 
@@ -126,25 +122,5 @@ public class SearchServiceImpl implements SearchService {
             snippets.addAll(pageSnippets.getSnippets());
         }
         return snippets;
-    }
-
-    private void addToCache(SearchRequest request, SearchResponse response) {
-        String site = "All";
-        if (request.site() != null) {
-            site = request.site();
-        }
-        cache.add(site + request.query(), response);
-    }
-
-    private SearchResponse getFromCache(SearchRequest request) {
-        String site = "All";
-        if (request.site() != null) {
-            site = request.site();
-        }
-        String key = site + request.query();
-        if (cache.contains(key)) {
-            return cache.response(key);
-        }
-        return null;
     }
 }
