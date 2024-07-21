@@ -44,9 +44,10 @@ public class SearchServiceImpl implements SearchService {
         }
         List<SiteEntity> sites = getSites(request);
         Map<String, Integer> lemmas = getLemmas(request);
+        List<String> words = textWorker.validWords(request.query());
 
         List<SearchingTask> tasks = new ArrayList<>();
-        search(sites, lemmas, tasks);
+        search(sites, words, lemmas, tasks);
         SearchResponse response = prepareResponse(tasks);
 
         cache.add(request, response);
@@ -88,12 +89,14 @@ public class SearchServiceImpl implements SearchService {
         return textWorker.lemmas(text);
     }
 
-    private void search(
-            List<SiteEntity> sites, Map<String, Integer> lemmas, List<SearchingTask> tasks) {
+    private void search(List<SiteEntity> sites,
+                        List<String> words,
+                        Map<String, Integer> lemmas,
+                        List<SearchingTask> tasks) {
         for (SiteEntity site : sites) {
             SearchManager manager = new SearchManager(
                     site, lemmaSearch, pageRepository, indexRepository, jsoupWorker, textWorker);
-            SearchingTask task = new SearchingTask(manager, lemmas);
+            SearchingTask task = new SearchingTask(manager, words, lemmas);
             task.start();
             tasks.add(task);
         }

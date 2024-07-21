@@ -9,6 +9,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CollectTask implements Runnable {
     private final SearchManager manager;
+    private final List<String> words;
     private final List<IndexEntity> indexes;
     private Thread thread;
 
@@ -30,6 +31,6 @@ public class CollectTask implements Runnable {
         if (indexes.isEmpty()) {
             return;
         }
-        manager.saveData(manager.collectPageData(indexes));
+        manager.saveData(manager.collectPageData(words, indexes));
     }
 }

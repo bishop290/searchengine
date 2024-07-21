@@ -14,6 +14,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SearchingTask implements Runnable {
     private final SearchManager manager;
+    private final List<String> words;
     private final Map<String, Integer> lemmasInText;
     private final List<CollectTask> children = new ArrayList<>();
     private Thread thread;
@@ -62,22 +63,22 @@ public class SearchingTask implements Runnable {
 
         for (IndexEntity index : indexes) {
             int currentId = index.getPage().getId();
-            if (currentId == pageId) {
-                indexesForTask.add(index);
-            } else {
+            if (currentId != pageId) {
                 startTask(manager, indexesForTask);
                 pageId = currentId;
                 indexesForTask = new ArrayList<>();
             }
+            indexesForTask.add(index);
         }
-        if (!indexesForTask.isEmpty()) {
-            startTask(manager, indexesForTask);
-        }
+        startTask(manager, indexesForTask);
         children.forEach(CollectTask::join);
     }
 
     private void startTask(SearchManager manager, List<IndexEntity> indexes) {
-        CollectTask task = new CollectTask(manager, indexes);
+        if (indexes.isEmpty()) {
+            return;
+        }
+        CollectTask task = new CollectTask(manager, words, indexes);
         task.start();
         children.add(task);
     }

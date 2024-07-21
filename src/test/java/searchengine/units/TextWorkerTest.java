@@ -10,6 +10,7 @@ import searchengine.components.TextWorker;
 import searchengine.config.SearchSettings;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -94,5 +95,14 @@ class TextWorkerTest {
         String expect = "Экзоскелет";
         String result = worker.firstCharToUpperCase(word);
         assertEquals(expect, result);
+    }
+
+    @Test
+    @DisplayName("Is valid word")
+    void testIsValidWord() throws IOException {
+        String text = "Художественная, литература и кино";
+        worker.init();
+        List<String> result = worker.validWords(text);
+        assertEquals(3, result.size());
     }
 }

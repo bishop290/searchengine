@@ -49,7 +49,7 @@ public class SearchManager {
         return indexRepository.findByPageInAndLemmaInOrderByPageIdAsc(pages, lemmas);
     }
 
-    public PageSnippets collectPageData(List<IndexEntity> indexes) {
+    public PageSnippets collectPageData(List<String> words, List<IndexEntity> indexes) {
         PageSnippets pageSnippets = new PageSnippets();
         PageEntity page = indexes.get(0).getPage();
         pageSnippets.setSite(site.getUrl());
@@ -59,7 +59,7 @@ public class SearchManager {
         PageText pageText = jsoupWorker.getTextFromHtml(page.getContent());
         pageSnippets.setTitle(pageText.title());
 
-        return installSnippetsAndAbsoluteRelevance(pageSnippets, indexes, pageText.body());
+        return installSnippetsAndAbsoluteRelevance(pageSnippets, words, indexes, pageText.body());
     }
 
     public void saveData(PageSnippets pageSnippets) {
@@ -70,21 +70,22 @@ public class SearchManager {
     }
 
     private PageSnippets installSnippetsAndAbsoluteRelevance(
-            PageSnippets pageSnippets, List<IndexEntity> indexes, String text) {
+            PageSnippets pageSnippets, List<String> words, List<IndexEntity> indexes, String text) {
         StringBuilder pattern = new StringBuilder();
         boolean delimiterFlag = false;
 
         pattern.append("(");
+        for (String word : words) {
+            List<String> forms = getWordForms(word);
+            pageSnippets.addLemmas(forms);
+            appendToPattern(pattern, forms, delimiterFlag);
+            delimiterFlag = true;
+        }
         for (IndexEntity index : indexes) {
             pageSnippets.setAbsoluteRelevance(index.getRank());
-
-            String first = index.getLemma().getLemma();
-            String second = textWorker.firstCharToUpperCase(first);
-            String third = first.toUpperCase();
-            pageSnippets.addLemmas(Arrays.asList(first, second, third));
-
-            appendToPattern(pattern, first, second, third, delimiterFlag);
-            delimiterFlag = true;
+            List<String> forms = getWordForms(index.getLemma().getLemma());
+            pageSnippets.addLemmas(forms);
+            appendToPattern(pattern, forms, delimiterFlag);
         }
         pattern.append(")");
 
@@ -95,14 +96,20 @@ public class SearchManager {
         return pageSnippets;
     }
 
-    private void appendToPattern(
-            StringBuilder builder, String first, String second, String third, boolean flag) {
+    private List<String> getWordForms(String word) {
+        return Arrays.asList(word, textWorker.firstCharToUpperCase(word), word.toUpperCase());
+    }
+
+    private void appendToPattern(StringBuilder builder, List<String> forms, boolean flag) {
+        if (forms.size() < 3) {
+            return;
+        }
         if (flag) {
             builder.append("|");
         }
-        builder.append(first).append("|");
-        builder.append(second).append("|");
-        builder.append(third);
+        builder.append(forms.get(0)).append("|");
+        builder.append(forms.get(1)).append("|");
+        builder.append(forms.get(2));
     }
 
     private void createSnippets(PageSnippets pageSnippets, String text, String patternText) {

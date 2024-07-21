@@ -42,6 +42,10 @@ public class TextWorker {
         return lemmas;
     }
 
+    public List<String> validWords(String text) {
+        return Arrays.stream(splitText(text)).filter(this::isValidWord).toList();
+    }
+
     public String path(String url, String domain) {
         domain = domain.replaceFirst("^*(/)$", "");
         if (url.equals(domain) || url.equals(domain + "/")) {
