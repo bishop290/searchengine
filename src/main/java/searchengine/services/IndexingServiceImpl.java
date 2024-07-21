@@ -20,7 +20,8 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class IndexingServiceImpl implements IndexingService { ;
+public class IndexingServiceImpl implements IndexingService {
+    ;
     private final SitesList sites;
     private final IndexingSettings settings;
     private final Database database;

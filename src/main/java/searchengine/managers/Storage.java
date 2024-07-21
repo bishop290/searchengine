@@ -40,11 +40,19 @@ public class Storage {
         indexes.put(page.getPath(), index);
     }
 
-    public List<PageEntity> pages() { return new ArrayList<>(pages); }
+    public List<PageEntity> pages() {
+        return new ArrayList<>(pages);
+    }
 
-    public LemmaEntity lemmas(String key) { return lemmas.get(key); }
+    public LemmaEntity lemmas(String key) {
+        return lemmas.get(key);
+    }
 
-    public List<LemmaEntity> lemmas() { return new ArrayList<>(lemmas.values()); }
+    public List<LemmaEntity> lemmas() {
+        return new ArrayList<>(lemmas.values());
+    }
 
-    public Map<String, Integer> pageIndex(String path) { return indexes.get(path); }
+    public Map<String, Integer> pageIndex(String path) {
+        return indexes.get(path);
+    }
 }

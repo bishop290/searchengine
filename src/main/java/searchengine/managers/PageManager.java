@@ -27,11 +27,17 @@ public class PageManager {
 
     private volatile boolean stopFlag = false;
 
-    public void stop() { this.stopFlag = true; }
+    public void stop() {
+        this.stopFlag = true;
+    }
 
-    public boolean isStop() { return stopFlag; }
+    public boolean isStop() {
+        return stopFlag;
+    }
 
-    public String domain() { return site.getUrl(); }
+    public String domain() {
+        return site.getUrl();
+    }
 
     public boolean isDomain(String url) {
         return jsoupWorker.isDomain(url, site.getUrl());
@@ -66,7 +72,9 @@ public class PageManager {
         database.siteUpdate(site, Status.FAILED, text);
     }
 
-    public JsoupData parse(String url) { return jsoupWorker.connect(url); }
+    public JsoupData parse(String url) {
+        return jsoupWorker.connect(url);
+    }
 
     public Map<String, Integer> createIndex(JsoupData data) {
         return textWorker.lemmas(data.document().text());
@@ -76,7 +84,9 @@ public class PageManager {
         return jsoupWorker.getLinks(data.document(), domain());
     }
 
-    public boolean isNewUrl(String url) { return !storage.containsLink(url); }
+    public boolean isNewUrl(String url) {
+        return !storage.containsLink(url);
+    }
 
     public String save(JsoupData data, Map<String, Integer> index) {
         if (stopFlag) {
@@ -89,9 +99,13 @@ public class PageManager {
         return path;
     }
 
-    public void writePages() { database.insertPages(storage.pages()); }
+    public void writePages() {
+        database.insertPages(storage.pages());
+    }
 
-    public void writeLemmas() { database.insertLemmas(storage.lemmas()); }
+    public void writeLemmas() {
+        database.insertLemmas(storage.lemmas());
+    }
 
     public void writeIndexes(Set<IndexEntity> indexes) {
         database.insertIndexes(new ArrayList<>(indexes));
@@ -104,9 +118,13 @@ public class PageManager {
         storage.getLemmas().putAll(database.lemmas(site));
     }
 
-    public Set<PageEntity> pages() { return storage.getPages(); }
+    public Set<PageEntity> pages() {
+        return storage.getPages();
+    }
 
-    public LemmaEntity lemma(String name) { return storage.lemmas(name); }
+    public LemmaEntity lemma(String name) {
+        return storage.lemmas(name);
+    }
 
     public Map<String, Integer> indexData(PageEntity page) {
         return storage.pageIndex(page.getPath());

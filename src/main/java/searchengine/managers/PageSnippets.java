@@ -52,7 +52,7 @@ public class PageSnippets {
         return text;
     }
 
-     private String bold(String word, String text) {
+    private String bold(String word, String text) {
         String boldWord = String.format("<b>%s</b>", word);
         return text.replaceAll(word, boldWord);
     }

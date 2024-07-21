@@ -9,6 +9,8 @@ import java.util.Set;
 
 public interface LemmaRepository extends JpaRepository<LemmaEntity, Integer> {
     List<LemmaEntity> findBySite(SiteEntity site);
+
     List<LemmaEntity> findBySiteAndLemmaIn(SiteEntity site, Set<String> lemmas);
+
     LemmaEntity findFirstBySiteOrderByFrequencyDesc(SiteEntity site);
 }

@@ -69,7 +69,9 @@ public class Database {
         return pageRepository.findBySiteAndPath(site, path);
     }
 
-    public Set<PageEntity> pages(SiteEntity site) { return pageRepository.findBySite(site); }
+    public Set<PageEntity> pages(SiteEntity site) {
+        return pageRepository.findBySite(site);
+    }
 
     public void removePage(PageEntity page) {
         List<IndexEntity> indexes = indexRepository.findByPage(page);
@@ -119,6 +121,7 @@ public class Database {
                         ps.setString(4, sites.get(i).getUrl());
                         ps.setString(5, sites.get(i).getName());
                     }
+
                     public int getBatchSize() {
                         return sites.size();
                     }
@@ -135,6 +138,7 @@ public class Database {
                         ps.setInt(3, pages.get(i).getCode());
                         ps.setString(4, pages.get(i).getContent());
                     }
+
                     public int getBatchSize() {
                         return pages.size();
                     }
@@ -150,6 +154,7 @@ public class Database {
                         ps.setString(2, lemmas.get(i).getLemma());
                         ps.setInt(3, lemmas.get(i).getFrequency());
                     }
+
                     public int getBatchSize() {
                         return lemmas.size();
                     }
@@ -165,6 +170,7 @@ public class Database {
                         ps.setInt(2, indexes.get(i).getLemma().getId());
                         ps.setFloat(3, indexes.get(i).getRank());
                     }
+
                     public int getBatchSize() {
                         return indexes.size();
                     }
@@ -179,6 +185,7 @@ public class Database {
                         ps.setInt(1, lemmas.get(i).getFrequency());
                         ps.setInt(2, lemmas.get(i).getId());
                     }
+
                     public int getBatchSize() {
                         return lemmas.size();
                     }

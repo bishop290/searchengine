@@ -19,6 +19,7 @@ public interface PageRepository extends JpaRepository<PageEntity, Integer> {
             """;
 
     Set<PageEntity> findBySite(SiteEntity site);
+
     PageEntity findBySiteAndPath(SiteEntity site, String path);
 
     @Query(value = PAGE_BY_LEMMA_ID_QUERY, nativeQuery = true)

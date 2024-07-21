@@ -4,6 +4,8 @@ import searchengine.dto.indexing.IndexingResponse;
 
 public interface IndexingService {
     IndexingResponse start();
+
     IndexingResponse stop();
+
     IndexingResponse startOnePage(String url);
 }

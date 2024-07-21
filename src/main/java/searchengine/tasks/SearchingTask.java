@@ -32,9 +32,13 @@ public class SearchingTask implements Runnable {
         }
     }
 
-    public List<PageSnippets> data() { return manager.getData(); }
+    public List<PageSnippets> data() {
+        return manager.getData();
+    }
 
-    public int count() { return manager.getCount(); }
+    public int count() {
+        return manager.getCount();
+    }
 
     @Override
     public void run() {

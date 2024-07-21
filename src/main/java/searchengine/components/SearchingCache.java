@@ -9,7 +9,6 @@ import searchengine.dto.searching.SearchResponse;
 import searchengine.dto.searching.Snippet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,7 +61,7 @@ public class SearchingCache {
     private List<Snippet> getPieceOfSnippets(SearchRequest request, SearchResponse response) {
         int startIndex = Math.max(request.offset(), 0);
         startIndex = Math.min(startIndex, response.data().size() - 1);
-        int endIndex =  startIndex + request.limit();
+        int endIndex = startIndex + request.limit();
         endIndex = Math.min(endIndex, response.data().size());
         return new ArrayList<>(response.data().subList(startIndex, endIndex));
     }

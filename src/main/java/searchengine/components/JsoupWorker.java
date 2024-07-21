@@ -79,7 +79,7 @@ public class JsoupWorker {
         }
         boolean isValidHead = url.startsWith(domain + "/") || url.startsWith("/");
         boolean isValidTail = !url.matches(tailRegex);
-        return  isValidHead && isValidTail && !url.contains("#");
+        return isValidHead && isValidTail && !url.contains("#");
     }
 
     private void startDelay() {
