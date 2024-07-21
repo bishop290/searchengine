@@ -1,7 +1,6 @@
 package searchengine.tasks;
 
 import lombok.RequiredArgsConstructor;
-import searchengine.exceptions.SearchingException;
 import searchengine.managers.PageSnippets;
 import searchengine.managers.SearchManager;
 import searchengine.model.IndexEntity;
@@ -40,20 +39,18 @@ public class SearchingTask implements Runnable {
     public void run() {
         List<LemmaEntity> lemmaEntities = manager.getLemmaEntities(lemmasInText);
         if (lemmaEntities.isEmpty()) {
-            throw new SearchingException("Не удалось получить леммы из базы данных.");
-        } else if (lemmaEntities.size() < 2) {
-            throw new SearchingException("Количество полученных лемм из базы данных меньше двух");
+            return;
         }
 
         List<PageEntity> pageEntities = manager.findPagesForRareLemma(lemmaEntities.get(0));
         if (pageEntities.isEmpty()) {
-            throw new SearchingException("Не удалось получить страницы для самой редкой леммы");
+            return;
         }
 
         List<IndexEntity> indexEntities = manager.findIndexesSortingByPages(
                 pageEntities, lemmaEntities);
         if (indexEntities.isEmpty()) {
-            throw new SearchingException("Не удалоась получить индексы для страниц.");
+            return;
         }
 
         startChildTasks(manager, indexEntities);

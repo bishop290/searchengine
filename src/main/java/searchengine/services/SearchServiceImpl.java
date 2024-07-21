@@ -75,8 +75,6 @@ public class SearchServiceImpl implements SearchService {
         Map<String, Integer> lemmas = getLemmasInText(request.query());
         if (lemmas.isEmpty()) {
             throw new ParsingQueryException("Не удалось получить леммы из текста запроса.");
-        } else if (lemmas.size() < 2) {
-            throw new ParsingQueryException("Количество распознанных лемм меньше двух");
         }
         return lemmas;
     }
@@ -106,13 +104,18 @@ public class SearchServiceImpl implements SearchService {
         int count = 0;
         List<PageSnippets> allData = new ArrayList<>();
         for (SearchingTask task : tasks) {
-            count += task.count();
-            allData.addAll(task.data());
+            if (!task.data().isEmpty()) {
+                count += task.count();
+                allData.addAll(task.data());
+            }
         }
         return new SearchResponse(true, count, calculateRelativeRelevance(allData));
     }
 
     private List<Snippet> calculateRelativeRelevance(List<PageSnippets> data) {
+        if (data.isEmpty()) {
+            return new ArrayList<>();
+        }
         List<Snippet> snippets = new ArrayList<>();
         data.sort(new PageSnippetsComparator());
 

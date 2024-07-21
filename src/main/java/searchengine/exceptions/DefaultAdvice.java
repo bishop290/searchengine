@@ -51,12 +51,6 @@ public class DefaultAdvice {
                 new SearchResponseError(false, e.getMessage()), HttpStatus.OK);
     }
 
-    @ExceptionHandler(SearchingException.class)
-    public ResponseEntity<SearchResponseError> handleSearchingException(SearchingException e) {
-        return new ResponseEntity<>(
-                new SearchResponseError(false, e.getMessage()), HttpStatus.OK);
-    }
-
     @ExceptionHandler(SearchingTextWorkerException.class)
     public ResponseEntity<SearchResponseError> handleSearchingTextWorkerException(SearchingTextWorkerException e) {
         return new ResponseEntity<>(
